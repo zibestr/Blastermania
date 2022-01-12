@@ -1,8 +1,8 @@
-from base.core.mapping.level_map import LevelObject
+from base.core.mapping.level_map import ObjectLevel
 
 
 # класс для движущихся объектов
-class MovingObject(LevelObject):
+class MovingObject(ObjectLevel):
     def __init__(self, sizes, x, y, speed):
         super().__init__(sizes, x, y)
         self.speed = speed

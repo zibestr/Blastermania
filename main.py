@@ -2,7 +2,7 @@ from base.core import Game
 
 
 def main():
-    sizes = (width, height) = (800, 600)
+    sizes = (width, height) = (900, 700)
     game = Game(sizes, 120)
     game.run()
 

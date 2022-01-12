@@ -13,8 +13,8 @@ class DungeonLevel:
         # объекты, расположенные на уровне
         self.objects = list()
         # размеры комнаты на уровне
-        self.room_sizes = (min(surface_sizes) * 0.2,
-                           min(surface_sizes) * 0.2)
+        self.room_sizes = (math.ceil(min(surface_sizes) / 2),
+                           math.ceil(min(surface_sizes) / 2))
         # размеры для вертикального коридора
         self.corridor_sizes = (self.room_sizes[0] / 3,
                                self.room_sizes[1])
@@ -64,8 +64,9 @@ class DungeonLevel:
                 potential_places.append(obj)
         # перемешиваем места для случайного выбора точки спавна
         random.shuffle(potential_places)
-        self.spawn_point = (potential_places[0].x + potential_places[0].sizes[0] // 2,
-                            potential_places[0].y + potential_places[0].sizes[1] // 2)
+        # умножаем размеры на первоначальный масштаб
+        self.spawn_point = (potential_places[0].rect.x + potential_places[0].rect.width // 2,
+                            potential_places[0].rect.y + potential_places[0].rect.height // 2)
 
 
 # класс для генерации уровня
@@ -231,38 +232,28 @@ class GeneratorLevel:
 # любой объект на уровне
 class ObjectLevel:
     def __init__(self, sizes, x, y):
-        self.sizes = sizes
-        self.x = x
-        self.y = y
+        self.rect = pygame.Rect(x, y, *sizes)
 
     def draw(self, camera, color):
-        pass
-
-
-# класс масштабируемого объекта
-class ScaledObject(ObjectLevel):
-    def draw(self, camera, color=DUNGEON_ROOM_COLOR):
-        x = self.x - camera.center[0]
-        y = self.y - camera.center[1]
-        surface = camera.rendering_surface.surface
-        coords = [(float(x * camera.scale + surface.get_width() / 2),
-                   float(-y * camera.scale + surface.get_height() / 2)),
-                  (float(x * camera.scale + surface.get_width() / 2),
-                   float(-(y + self.sizes[1]) * camera.scale + surface.get_height() / 2)),
-                  (float((x + self.sizes[0]) * camera.scale + surface.get_width() / 2),
-                   float(-(y + self.sizes[1]) * camera.scale + surface.get_height() / 2)),
-                  (float((x + self.sizes[0]) * camera.scale + surface.get_width() / 2),
-                   float(-y * camera.scale + surface.get_height() / 2))]
-        pygame.draw.polygon(surface, color, coords)
+        if self.rect.colliderect(camera.rect):
+            x = self.rect.x - camera.rect.x
+            y = self.rect.y - camera.rect.y
+            pygame.draw.rect(camera.rendering_surface.surface, color, (x, y, self.rect.width, self.rect.height))
 
 
 # класс для комнат подземелья
-class DungeonRoom(ScaledObject):
+class DungeonRoom(ObjectLevel):
     def __init__(self, sizes, x, y):
         super().__init__(sizes, x, y)
+
+    def draw(self, camera, color=DUNGEON_ROOM_COLOR):
+        super().draw(camera, color)
 
 
 # класс для коридоров подземелья
-class DungeonCorridor(ScaledObject):
+class DungeonCorridor(ObjectLevel):
     def __init__(self, sizes, x, y):
         super().__init__(sizes, x, y)
+
+    def draw(self, camera, color=DUNGEON_ROOM_COLOR):
+        super().draw(camera, color)

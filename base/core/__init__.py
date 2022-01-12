@@ -4,7 +4,6 @@ from base.core.graphics.pause_menu import MenuUI
 from base.core.graphics.hud import HUD
 from base.core.mapping.level_map import DungeonLevel
 
-
 # инициализируем pygame
 
 pygame.init()
@@ -41,22 +40,20 @@ class Game:
     def render(self):
         if not self.pause:
             self.display.fill(pygame.Color('white'))
-            self.display.blit(self.camera.render_scale_surface(), (0, 0))
+            self.display.blit(self.camera.render_surface(), (0, 0))
 
     # метод для обработки событий
     def event_handler(self):
-        speed = 2
+        speed = 1
         for event in pygame.event.get():
+            # если игра на паузе, то ничего не делает
+            if self.pause:
+                break
             if event.type == pygame.QUIT:
                 self.game_running = False
-            if event.type == pygame.MOUSEBUTTONUP:
-                if event.button == 4:
-                    self.camera.get_scale(self.camera.scale + 0.1)
-                if event.button == 5:
-                    self.camera.get_scale(self.camera.scale - 0.1)
-        keys = pygame.key.get_pressed()
-        self.camera.center[0] += (keys[pygame.K_d] - keys[pygame.K_a]) * speed
-        self.camera.center[1] += (keys[pygame.K_w] - keys[pygame.K_s]) * speed
+            keys = pygame.key.get_pressed()
+            self.camera.move((keys[pygame.K_d] - keys[pygame.K_a]) * speed,
+                             (keys[pygame.K_s] - keys[pygame.K_w]) * speed)
 
     # метод для запуска игры
     def run(self):
