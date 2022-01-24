@@ -1,6 +1,7 @@
 import random
 import pygame
 import math
+from base.core.mapping.tiles_map import FloorTile
 
 # grey stone
 DUNGEON_ROOM_COLOR = (50, 49, 49)
@@ -9,7 +10,7 @@ DUNGEON_ROOM_COLOR = (50, 49, 49)
 # класс, реализующий уровень подземелья
 # имеет свою собственную систему координат, отличную от дисплея pygame
 class DungeonLevel:
-    def __init__(self, surface_sizes, board_sizes, tries):
+    def __init__(self, surface_sizes, board_sizes, tries, tiles_group):
         # объекты, расположенные на уровне
         self.objects = list()
         # размеры комнаты на уровне
@@ -23,13 +24,16 @@ class DungeonLevel:
         self.generator = GeneratorLevel(board_sizes)
         self.level_map = self.generator(self.tries)
 
+        # все тайлы на уровне подземелья
+        self.tiles = list()
+
         # заполняет objects комнатами и коридорами
-        self.fill_map()
+        self.fill_map(tiles_group)
         # проверяет пустой список объектов на уровне или нет
         # и регенерирует уровень
         while len(self.objects) < 4:
             self.regenerate()
-            self.fill_map()
+            self.fill_map(tiles_group)
         # точка спавна игрока
         self.spawn_point = (0, 0)
         self.set_spawn()
@@ -39,21 +43,28 @@ class DungeonLevel:
         self.level_map = self.generator(self.tries)
 
     # заменить числа на карте на объекты нужны классов
-    def fill_map(self):
+    def fill_map(self, tiles_group):
         for i in range(len(self.level_map)):
             for j in range(len(self.level_map[i])):
                 if self.level_map[i][j] == 1 or self.level_map[i][j] == 4:
                     self.objects.append(DungeonRoom(self.room_sizes,
                                                     j * self.room_sizes[1],
-                                                    i * self.room_sizes[0]))
+                                                    i * self.room_sizes[0],
+                                                    tiles_group))
                 elif self.level_map[i][j] == 2:
                     self.objects.append(DungeonCorridor(self.corridor_sizes,
                                                         j * self.room_sizes[0] + self.corridor_sizes[0],
-                                                        i * self.corridor_sizes[1]))
+                                                        i * self.corridor_sizes[1],
+                                                        tiles_group))
                 elif self.level_map[i][j] == 3:
                     self.objects.append(DungeonCorridor(self.corridor_sizes[::-1],
                                                         j * self.corridor_sizes[1],
-                                                        i * self.room_sizes[0] + self.corridor_sizes[0]))
+                                                        i * self.room_sizes[0] + self.corridor_sizes[0],
+                                                        tiles_group))
+                try:
+                    self.tiles += self.objects[-1].tiles
+                except IndexError:
+                    pass
 
     # ставит точку спавна игрока
     def set_spawn(self):
@@ -234,26 +245,46 @@ class ObjectLevel:
     def __init__(self, sizes, x, y):
         self.rect = pygame.Rect(x, y, *sizes)
 
-    def draw(self, camera, color):
-        if self.rect.colliderect(camera.rect):
-            x = self.rect.x - camera.rect.x
-            y = self.rect.y - camera.rect.y
-            pygame.draw.rect(camera.rendering_surface.surface, color, (x, y, self.rect.width, self.rect.height))
-
 
 # класс для комнат подземелья
 class DungeonRoom(ObjectLevel):
-    def __init__(self, sizes, x, y):
+    def __init__(self, sizes, x, y, tiles_group):
         super().__init__(sizes, x, y)
+        self.tiles = list()
+        self.generate_tiles(tiles_group)
 
-    def draw(self, camera, color=DUNGEON_ROOM_COLOR):
-        super().draw(camera, color)
+    # заполняет комнату тайлами пола
+    def generate_tiles(self, tiles_group):
+        tile_width = self.rect.width // 6 + 1
+        tile_height = tile_width
+        for i in range(6):
+            for j in range(6):
+                self.tiles.append(FloorTile(self.rect.x + tile_width * j,
+                                            self.rect.y + tile_height * i,
+                                            tile_width, tile_height, tiles_group))
 
 
 # класс для коридоров подземелья
 class DungeonCorridor(ObjectLevel):
-    def __init__(self, sizes, x, y):
+    def __init__(self, sizes, x, y, tiles_group):
         super().__init__(sizes, x, y)
+        self.tiles = list()
+        self.generate_tiles(tiles_group)
 
-    def draw(self, camera, color=DUNGEON_ROOM_COLOR):
-        super().draw(camera, color)
+    # заполняет коридор тайлами пола
+    def generate_tiles(self, tiles_group):
+        if self.rect.width > self.rect.height:
+            lim1 = 2
+            lim2 = 6
+            tile_width = self.rect.width // lim2 + 1
+            tile_height = tile_width
+        else:
+            lim1 = 6
+            lim2 = 2
+            tile_height = self.rect.height // lim1 + 1
+            tile_width = tile_height
+        for i in range(lim1):
+            for j in range(lim2):
+                self.tiles.append(FloorTile(self.rect.x + tile_width * j,
+                                            self.rect.y + tile_height * i,
+                                            tile_width, tile_height, tiles_group))

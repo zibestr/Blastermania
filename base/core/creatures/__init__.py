@@ -1,4 +1,3 @@
-from base.core.mapping.level_map import ObjectLevel
 import pygame
 import os
 
@@ -19,6 +18,17 @@ def load_image(name, colorkey=None):
     else:
         image = image.convert_alpha()
     return image
+
+
+class ObjectLevel:
+    def __init__(self, sizes, x, y):
+        self.rect = pygame.Rect(x, y, *sizes)
+
+    def draw(self, camera, color):
+        if self.rect.colliderect(camera.rect):
+            x = self.rect.x - camera.rect.x
+            y = self.rect.y - camera.rect.y
+            pygame.draw.rect(camera.rendering_surface.surface, color, (x, y, self.rect.width, self.rect.height))
 
 
 # класс реализующий движущийся объект
@@ -111,7 +121,7 @@ class AnimatedSprite(MovingSprite):
     # метод для разделения изображения на фреймы анимации
     # mirror отвечает за зеркальное отражение
     def cut_sheet(self, sheet, columns, rows, mirror=False):
-        scale = 3
+        scale = 3.25
         width = sheet.get_width() // columns
         height = sheet.get_height() // rows
         self.rect = pygame.Rect(0, 0, width * scale, height * scale)

@@ -91,6 +91,9 @@ class GameSurface:
             2: (15, 15)
         }
         self.surface = pygame.Surface((sizes[0], sizes[1] * 0.90))
+        # создаёт группы спрайтов
+        self.creatures_sprites = SpritesCameraGroup()
+        self.tiles_sprites = SpritesCameraGroup()
         # список со всеми уровнями
         try:
             self.levels = self.generate_dungeon(count_levels, size_compare[map_size],
@@ -100,12 +103,10 @@ class GameSurface:
                                                 size_compare[0][0] - 4)
         self.current_level = 0
 
-        # создаёт группы спрайтов
-        self.creatures_sprites = SpritesCameraGroup()
-        self.tiles_sprites = SpritesCameraGroup()
         # создаёт игрока
         self.hero = Hero(self.center[0], self.center[1], [0, 0], self.creatures_sprites)
         self.creatures_sprites.add(self.hero)
+        self.tiles_sprites.add(*self.levels[self.current_level].tiles)
         # добавляет группы спрайтов на уровни
         self.levels[self.current_level].objects.append(self.creatures_sprites)
         self.levels[self.current_level].objects.append(self.tiles_sprites)
@@ -122,7 +123,7 @@ class GameSurface:
     def generate_dungeon(self, count, board_sizes, tries):
         dungeon = list()
         for _ in range(count):
-            dungeon.append(DungeonLevel(self.surface.get_size(), board_sizes, tries))
+            dungeon.append(DungeonLevel(self.surface.get_size(), board_sizes, tries, self.tiles_sprites))
         return dungeon
 
     # центр поверхности

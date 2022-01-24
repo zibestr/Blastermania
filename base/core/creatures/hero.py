@@ -10,4 +10,3 @@ class Hero(RunningSprite):
         super().__init__(hero_idle, hero_run, x, y, speed, group)
         self.hp = 8
         self.attack = 1
-
