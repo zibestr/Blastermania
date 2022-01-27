@@ -1,7 +1,7 @@
 import random
 import pygame
 import math
-from base.core.mapping.tiles_map import FloorTile
+from base.core.mapping.tiles_map import FloorTile, WallTile
 
 # grey stone
 DUNGEON_ROOM_COLOR = (50, 49, 49)

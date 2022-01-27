@@ -22,3 +22,11 @@ class FloorTile(Sprite):
         self.image = scale(load_image(f'floor\\floor_{randint(1, 17)}.png'), (width, height))
         self.rect = self.image.get_rect()
         self.rect = self.rect.move(x, y)
+
+
+class WallTile(Sprite):
+    def __init__(self, x, y, width, height, group):
+        super().__init__(*group)
+        self.image = scale(load_image(f'walls\\wall_{randint(1, 5)}.png'), (width, height))
+        self.rect = self.image.get_rect()
+        self.rect = self.rect.move(x, y)

@@ -22,7 +22,7 @@ class Camera:
 
     # рендарит поверхность для отрисовки с учётом масштаба
     def render_surface(self):
-        self.rendering_surface.surface.fill(pygame.Color('black'))
+        self.rendering_surface.surface.fill(pygame.Color(25, 28, 49))
         # рисует сначала тайлы окружения, а потом существ
         self.rendering_surface.tiles_sprites.draw(self)
         self.rendering_surface.creatures_sprites.draw(self)

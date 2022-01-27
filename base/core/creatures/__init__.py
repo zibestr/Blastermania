@@ -115,7 +115,7 @@ class AnimatedSprite(MovingSprite):
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(x, y)
-        self.limit = 20
+        self.limit = 18
         self.counter = 0
 
     # метод для разделения изображения на фреймы анимации

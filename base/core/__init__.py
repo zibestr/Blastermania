@@ -5,6 +5,7 @@ from base.core.graphics.hud import HUD
 from base.core.mapping.level_map import DungeonLevel
 from base.core.creatures.hero import Hero
 from base.core.creatures import SpritesCameraGroup
+from random import choices
 
 # инициализируем pygame
 
@@ -29,30 +30,55 @@ class Game:
         # game_surface - поверхность с основной игрой
         # menu_surface - поверхность для отрисовки меню
         # hud_surface - поверхность для отрисовки интерфейса игрока
-        self.game_surface, self.menu_surface, self.hud_surface = self.get_surfaces()
+        self.game_surface = GameSurface(self.window_sizes, 1, 1)
+        self.menu_surface = MenuUI(self.window_sizes)
+        self.hud_surface = HUD(self.window_sizes, self.game_surface.hero)
         # камера
         self.camera = Camera(self.game_surface)
+        # курсор
+        pygame.mouse.set_visible(False)
+        self.cursor_image = pygame.image.load('D:\\git_lab3_lesson2\\Blastermania\\base\\core\\graphics\\ui'
+                                              '\\crosshair_1.png').convert_alpha()
+        # музыка
+        self.music_files = ['DarkChapel.mp3', 'BehindEnemyStripes.mp3',
+                            'CarefreeSpirit.mp3', 'DunesOfTheLost.mp3',
+                            'HiddenUtopia.mp3', 'Spinetingler.mp3']
 
-    def get_surfaces(self):
-        return GameSurface(self.window_sizes, 5, 1), \
-               MenuUI(self.window_sizes), \
-               HUD()
+    # метод для проигрывания музыки
+    def play_background_music(self):
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.load(f'D:\\git_lab3_lesson2\\Blastermania\\base'
+                                    f'\\music\\background\\{choices(self.music_files)[0]}')
+            pygame.mixer.music.play(loops=1)
+            pygame.mixer.music.set_volume(0.1)
 
     # метод для отрисовки всей игры
     def render(self):
         if not self.pause:
             self.display.fill(pygame.Color('white'))
+            # отрисовка основной поверхности
             self.display.blit(self.camera.render_surface(), (0, 0))
+            # отрисовка интерфейса игрока
+            self.display.blit(self.hud_surface.render(), (0, 0))
+            # заменяет курсор
+            self.display.blit(pygame.transform.scale(self.cursor_image,
+                                                     (self.window_sizes[0] * 0.03,
+                                                      self.window_sizes[0] * 0.03)),
+                              (pygame.mouse.get_pos()))
 
     # метод для обработки событий
     def event_handler(self):
         speed = 2
+
         for event in pygame.event.get():
             # если игра на паузе, то ничего не делает
             if self.pause:
                 break
             if event.type == pygame.QUIT:
                 self.game_running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LSHIFT:
+                    self.game_surface.hero.dodge()
             keys = pygame.key.get_pressed()
             if abs(keys[pygame.K_d] - keys[pygame.K_a]) > 0 or abs(keys[pygame.K_s] - keys[pygame.K_w]) > 0:
                 self.game_surface.hero.is_running = True
@@ -64,13 +90,14 @@ class Game:
     # метод для обновления всех процессов в игре
     def update(self):
         if not self.pause:
-            self.camera.move()
             self.game_surface.update_level()
+            self.camera.move()
 
     # метод для запуска игры
     def run(self):
         self.game_running = True
         while self.game_running:
+            self.play_background_music()
             self.event_handler()
             self.update()
             self.render()
@@ -90,7 +117,7 @@ class GameSurface:
             1: (10, 10),
             2: (15, 15)
         }
-        self.surface = pygame.Surface((sizes[0], sizes[1] * 0.90))
+        self.surface = pygame.Surface((sizes[0], sizes[1]))
         # создаёт группы спрайтов
         self.creatures_sprites = SpritesCameraGroup()
         self.tiles_sprites = SpritesCameraGroup()
