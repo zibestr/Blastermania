@@ -36,6 +36,7 @@ class DungeonLevel:
             self.fill_map(tiles_group)
         # точка спавна игрока
         self.spawn_point = (0, 0)
+        self.spawn_room = None
         self.set_spawn()
 
     # заново сгенерировать подземелье
@@ -78,6 +79,7 @@ class DungeonLevel:
         # умножаем размеры на первоначальный масштаб
         self.spawn_point = (potential_places[0].rect.x + potential_places[0].rect.width // 2,
                             potential_places[0].rect.y + potential_places[0].rect.height // 2)
+        self.spawn_room = potential_places[0]
 
 
 # класс для генерации уровня

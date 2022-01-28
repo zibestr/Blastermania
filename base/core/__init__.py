@@ -1,11 +1,16 @@
 import pygame
+
+from base.core.creatures.fly_creature import FlyingCreature
+from base.core.creatures.goblin import Goblin
+from base.core.creatures.monsters import MonsterFabric
+from base.core.creatures.slime import Slime
 from base.core.graphics.camera import Camera
 from base.core.graphics.pause_menu import MenuUI
 from base.core.graphics.hud import HUD
-from base.core.mapping.level_map import DungeonLevel
+from base.core.mapping.level_map import DungeonLevel, DungeonRoom
 from base.core.creatures.hero import Hero
 from base.core.creatures import SpritesCameraGroup
-from random import choices
+from random import choices, randint
 
 # инициализируем pygame
 
@@ -121,6 +126,8 @@ class GameSurface:
         # создаёт группы спрайтов
         self.creatures_sprites = SpritesCameraGroup()
         self.tiles_sprites = SpritesCameraGroup()
+        # генератор монстров
+        self.monsters = MonsterFabric({'goblin': Goblin, 'slime': Slime, 'fly': FlyingCreature}, self.creatures_sprites)
         # список со всеми уровнями
         try:
             self.levels = self.generate_dungeon(count_levels, size_compare[map_size],
@@ -129,6 +136,9 @@ class GameSurface:
             self.levels = self.generate_dungeon(count_levels, size_compare[0],
                                                 size_compare[0][0] - 4)
         self.current_level = 0
+
+        # генерирует монстров
+        self.generate_monsters(1, 2)
 
         # создаёт игрока
         self.hero = Hero(self.center[0], self.center[1], [0, 0], self.creatures_sprites)
@@ -152,6 +162,17 @@ class GameSurface:
         for _ in range(count):
             dungeon.append(DungeonLevel(self.surface.get_size(), board_sizes, tries, self.tiles_sprites))
         return dungeon
+
+    # метод для генерации монстров
+    def generate_monsters(self, min_count, max_count):
+        for obj in self.levels[self.current_level].objects:
+            if isinstance(obj, DungeonRoom):
+                if obj is not self.levels[self.current_level].spawn_room:
+                    for _ in range(randint(min_count, max_count)):
+                        x = randint(obj.rect.x + 10, obj.rect.right - 50)
+                        y = randint(obj.rect.y + 10, obj.rect.bottom - 50)
+                        monster = self.monsters.create_random_monster(x, y)
+                        self.creatures_sprites.add(monster)
 
     # центр поверхности
     @property

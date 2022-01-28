@@ -36,6 +36,7 @@ class MovingObject(ObjectLevel):
     def __init__(self, sizes, x, y, speed):
         super().__init__(sizes, x, y)
         self.speed = speed
+        self.is_collision = False
 
     def draw(self, camera, color=pygame.Color('white')):
         super().draw(camera, color)
@@ -43,6 +44,12 @@ class MovingObject(ObjectLevel):
     def move(self):
         self.rect.x += self.speed[0]
         self.rect.y += self.speed[1]
+        if self.rect.collidelist(list(filter(lambda x: x is not self, self.groups()[0].sprites()))) != -1:
+            self.rect.x -= self.speed[0]
+            self.rect.y -= self.speed[1]
+            self.is_collision = True
+        else:
+            self.is_collision = False
 
     # обновление объекта
     def update(self, camera):
@@ -70,7 +77,7 @@ class SpritesCameraGroup(pygame.sprite.Group):
 
 # реализация статичного спрайта
 class Sprite(pygame.sprite.Sprite):
-    def __init__(self, image_name, colorkey, x, y, group):
+    def __init__(self, image_name, colorkey, x, y, *group):
         super().__init__(*group)
         self.image = load_image(image_name, colorkey)
         self.rect = self.image.get_rect()
@@ -79,9 +86,9 @@ class Sprite(pygame.sprite.Sprite):
 
 # реализация движущегося спрайта
 class MovingSprite(Sprite, MovingObject):
-    def __init__(self, image_name, colorkey, x, y, speed, group):
+    def __init__(self, image_name, colorkey, x, y, speed, *group):
         MovingObject.__init__(self, (0, 0), x, y, speed)
-        Sprite.__init__(self, image_name, colorkey, x, y, group)
+        Sprite.__init__(self, image_name, colorkey, x, y, *group)
 
     def update(self):
         self.move()
@@ -89,8 +96,8 @@ class MovingSprite(Sprite, MovingObject):
 
 # реализация анимированного спрайта
 class AnimatedSprite(MovingSprite):
-    def __init__(self, image_name, columns, rows, x, y, speed, group):
-        super().__init__(image_name, None, x, y, speed, group)
+    def __init__(self, image_name, columns, rows, x, y, speed, *group):
+        super().__init__(image_name, None, x, y, speed, *group)
         # словарь в котором хранятся данные для анимации спрайтов
         # сигнатура элементов словаря: 'путь в спрайту', количество столбцов, количество строк
         self.spritesheets = dict()
@@ -144,8 +151,8 @@ class AnimatedSprite(MovingSprite):
 # реализация класса с анимацией для бега
 class RunningSprite(AnimatedSprite):
     # аргументы idle_spritesheet и run_spritesheet соответствуют сигнатуре словаря spritesheets
-    def __init__(self, idle_spritesheet, run_spritesheet, x, y, speed, group):
-        super().__init__(*idle_spritesheet, x, y, speed, group)
+    def __init__(self, idle_spritesheet, run_spritesheet, x, y, speed, *group):
+        super().__init__(*idle_spritesheet, x, y, speed, *group)
         # переменная в которой хранятся данные для анимации спрайтов
         self.spritesheets['run'] = run_spritesheet
         self.spritesheets['idle'] = idle_spritesheet

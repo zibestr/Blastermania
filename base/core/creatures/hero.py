@@ -14,11 +14,11 @@ class Hero(RunningSprite):
         # переменные, связанные с уклонением
         self.dodge_tick = 0
         self.dodge_limit = 2
-        self.dodge_cooldown = 120 * 1.5
+        self.dodge_cooldown = 120 * 1.8
         self.dodge_time = 0
 
     def dodge(self):
-        if self.dodge_time == 0:
+        if self.dodge_time == 0 and not self.is_collision:
             self.dodge_tick = 1
             self.dodge_time = 1
 
@@ -33,5 +33,4 @@ class Hero(RunningSprite):
                 self.dodge_time = 0
             else:
                 self.dodge_time += 1
-
         super().move()

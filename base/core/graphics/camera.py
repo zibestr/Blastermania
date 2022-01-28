@@ -16,9 +16,10 @@ class Camera:
 
     # метод для движения камеры
     def move(self):
-        delta = self.rendering_surface.hero.speed
-        self.rect.x += delta[0]
-        self.rect.y += delta[1]
+        if not self.rendering_surface.hero.is_collision:
+            delta = self.rendering_surface.hero.speed
+            self.rect.x += delta[0]
+            self.rect.y += delta[1]
 
     # рендарит поверхность для отрисовки с учётом масштаба
     def render_surface(self):
