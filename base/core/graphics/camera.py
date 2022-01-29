@@ -27,5 +27,9 @@ class Camera:
         # рисует сначала тайлы окружения, а потом существ
         self.rendering_surface.tiles_sprites.draw(self)
         self.rendering_surface.creatures_sprites.draw(self)
+        for entity in self.rendering_surface.creatures_sprites.sprites():
+            pygame.draw.rect(self.rendering_surface.surface, pygame.Color('red'), (entity.rect.x - self.rect.x,
+                                                                                   entity.rect.y - self.rect.y,
+                                                                                   entity.rect.w, entity.rect.h), width=3)
 
         return self.rendering_surface.surface

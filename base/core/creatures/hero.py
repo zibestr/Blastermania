@@ -1,15 +1,40 @@
 from base.core.creatures import RunningSprite
+import pygame
+import os
+
+pygame.mixer.init()
 
 hero_idle = ['hero\\knight_idle_spritesheet.png', 6, 1]
 hero_run = ['hero\\knight_run_spritesheet.png', 6, 1]
+# звуки для игрока
+sounds_path = f'{os.getcwd()}\\base\\music\\sounds'
+hit_sound = pygame.mixer.Sound(os.path.join(sounds_path, 'hit.wav'))
+death_sound = pygame.mixer.Sound(os.path.join(sounds_path, 'death.wav'))
+shoot_sounds = [pygame.mixer.Sound(os.path.join(sounds_path, 'shoot_1.wav')),
+                pygame.mixer.Sound(os.path.join(sounds_path, 'shoot_1.wav'))]
+open_chest_sound = pygame.mixer.Sound(os.path.join(sounds_path, 'open_chest.wav'))
+dodge_sound = pygame.mixer.Sound(os.path.join(sounds_path, 'dodge.wav'))
+
+volume = 0.02
+hit_sound.set_volume(volume)
+dodge_sound.set_volume(volume)
+death_sound.set_volume(volume)
+shoot_sounds[0].set_volume(volume)
+shoot_sounds[1].set_volume(volume)
+open_chest_sound.set_volume(volume)
 
 
 # класс реализующий героя
 class Hero(RunningSprite):
-    def __init__(self, x, y, speed, group):
-        super().__init__(hero_idle, hero_run, x, y, speed, group)
+    def __init__(self, x, y, speed, rooms, group):
+        super().__init__(hero_idle, hero_run, x, y, speed, rooms, group)
         self.hp = 4
+        self.max_hp = 4
         self.attack = 1
+        # даёт бессмертие на полторы секунды, если игроку нанесли урон
+        self.cooldown_damaged = 120 * 1.5
+        self.time_damaged = 0
+        self.is_alive = True
 
         # переменные, связанные с уклонением
         self.dodge_tick = 0
@@ -18,7 +43,8 @@ class Hero(RunningSprite):
         self.dodge_time = 0
 
     def dodge(self):
-        if self.dodge_time == 0 and not self.is_collision:
+        if self.dodge_time == 0:
+            dodge_sound.play()
             self.dodge_tick = 1
             self.dodge_time = 1
 
@@ -34,3 +60,27 @@ class Hero(RunningSprite):
             else:
                 self.dodge_time += 1
         super().move()
+
+    def update(self):
+        super().update()
+        if 0 < self.time_damaged < self.cooldown_damaged:
+            self.time_damaged += 1
+        else:
+            self.time_damaged = 0
+
+    def get_damage(self, damage):
+        if self.time_damaged == 0 and self.is_alive:
+            self.hp -= damage
+            hit_sound.play()
+            if self.hp == 0:
+                self.is_alive = False
+                death_sound.play()
+            self.time_damaged = 1
+
+    def collision(self, collision_object):
+        super().collision(collision_object)
+        try:
+            self.get_damage(collision_object.attack)
+        except AttributeError:
+            pass
+

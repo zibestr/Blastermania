@@ -4,7 +4,7 @@ import pygame
 
 # метод загрузки изображения
 def load_image(name):
-    fullname = os.path.join('D:\\git_lab3_lesson2\\Blastermania\\base\\core\\graphics\\ui', name)
+    fullname = os.path.join(f'{os.getcwd()}\\base\\core\\graphics\\ui', name)
     # если файл не существует, то выходим
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
@@ -27,6 +27,9 @@ class HUD:
     def health_bar(self):
         sizes = self.health_ui.get_rect().w, self.health_ui.get_rect().h
         scale = self.surface.get_width() / 4.0 / sizes[0]
+        pygame.draw.rect(self.surface, pygame.Color(80, 0, 0), (10 + int(19 * scale), 20,
+                                                                 int(self.hero.max_hp * sizes[0] / 5.3 * scale),
+                                                                 int(sizes[1] / 2 * scale)))
         pygame.draw.rect(self.surface, pygame.Color(150, 0, 0), (10 + int(19 * scale), 20,
                                                                  int(self.hero.hp * sizes[0] / 5.3 * scale),
                                                                  int(sizes[1] / 2 * scale)))

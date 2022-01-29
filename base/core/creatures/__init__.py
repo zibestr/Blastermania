@@ -4,7 +4,7 @@ import os
 
 # метод загрузки изображения
 def load_image(name, colorkey=None):
-    fullname = os.path.join('D:\\git_lab3_lesson2\\Blastermania\\base\\core\\creatures\\sprites', name)
+    fullname = os.path.join(f'{os.getcwd()}\\base\\core\\creatures\\sprites', name)
     # если файл не существует, то выходим
     if not os.path.isfile(fullname):
         print(f"Файл с изображением '{fullname}' не найден")
@@ -36,7 +36,6 @@ class MovingObject(ObjectLevel):
     def __init__(self, sizes, x, y, speed):
         super().__init__(sizes, x, y)
         self.speed = speed
-        self.is_collision = False
 
     def draw(self, camera, color=pygame.Color('white')):
         super().draw(camera, color)
@@ -44,12 +43,13 @@ class MovingObject(ObjectLevel):
     def move(self):
         self.rect.x += self.speed[0]
         self.rect.y += self.speed[1]
-        if self.rect.collidelist(list(filter(lambda x: x is not self, self.groups()[0].sprites()))) != -1:
-            self.rect.x -= self.speed[0]
-            self.rect.y -= self.speed[1]
-            self.is_collision = True
-        else:
-            self.is_collision = False
+        index = self.rect.collidelist(list(filter(lambda x: x is not self, self.groups()[0].sprites())))
+        if index != -1:
+            self.collision(self.groups()[0].sprites()[index])
+
+    # функция коллизии
+    def collision(self, collision_object):
+        pass
 
     # обновление объекта
     def update(self, camera):
@@ -122,7 +122,7 @@ class AnimatedSprite(MovingSprite):
         self.cur_frame = 0
         self.image = self.frames[self.cur_frame]
         self.rect = self.rect.move(x, y)
-        self.limit = 18
+        self.limit = 15
         self.counter = 0
 
     # метод для разделения изображения на фреймы анимации
@@ -151,7 +151,7 @@ class AnimatedSprite(MovingSprite):
 # реализация класса с анимацией для бега
 class RunningSprite(AnimatedSprite):
     # аргументы idle_spritesheet и run_spritesheet соответствуют сигнатуре словаря spritesheets
-    def __init__(self, idle_spritesheet, run_spritesheet, x, y, speed, *group):
+    def __init__(self, idle_spritesheet, run_spritesheet, x, y, speed, rooms, *group):
         super().__init__(*idle_spritesheet, x, y, speed, *group)
         # переменная в которой хранятся данные для анимации спрайтов
         self.spritesheets['run'] = run_spritesheet
@@ -159,6 +159,8 @@ class RunningSprite(AnimatedSprite):
         self.update_animation(self.spritesheets['idle'])
         self.is_running = False
         self.direction = 1
+        self.rooms = rooms
+        self.is_collision = False
 
     def update(self):
         if self.is_running and self.cur_spritesheet != self.spritesheets['run'] or self.direction * self.speed[0] < 0:
@@ -170,3 +172,38 @@ class RunningSprite(AnimatedSprite):
         elif not self.is_running and self.cur_spritesheet != self.spritesheets['idle']:
             self.update_animation(self.spritesheets['idle'])
         super().update()
+
+    def move(self):
+        super().move()
+        self.collide(self.rooms)
+
+    def back(self):
+        self.rect.x -= self.speed[0]
+        self.rect.y -= self.speed[1]
+        self.is_collision = True
+
+    # функция коллизии со стенами
+    def collide(self, objects):
+        indexes = self.rect.collidelistall(list(map(lambda x: x.rect, objects)))
+        if len(indexes) == 1:
+            rect_room = objects[indexes[0]].rect
+            if rect_room.x > self.rect.x or \
+                    rect_room.y > self.rect.y or \
+                    rect_room.bottom < self.rect.bottom or \
+                    rect_room.right < self.rect.right:
+                self.back()
+            else:
+                self.is_collision = False
+        elif len(indexes) == 2:
+            rect_room1 = objects[indexes[0]].rect
+            rect_room2 = objects[indexes[1]].rect
+            if rect_room1.y == rect_room2.bottom or rect_room1.bottom == rect_room2.y:
+                if max(rect_room1.x, rect_room2.x) > self.rect.x or \
+                        min(rect_room1.right, rect_room2.right) < self.rect.right:
+                    self.back()
+            elif rect_room1.x == rect_room2.right or rect_room1.right == rect_room2.x:
+                if max(rect_room1.y, rect_room2.y) > self.rect.y or \
+                        min(rect_room1.bottom, rect_room2.bottom) < self.rect.bottom:
+                    self.back()
+            else:
+                self.is_collision = False

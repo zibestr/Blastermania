@@ -1,3 +1,5 @@
+import os
+
 import pygame
 
 from base.core.creatures.fly_creature import FlyingCreature
@@ -7,7 +9,7 @@ from base.core.creatures.slime import Slime
 from base.core.graphics.camera import Camera
 from base.core.graphics.pause_menu import MenuUI
 from base.core.graphics.hud import HUD
-from base.core.mapping.level_map import DungeonLevel, DungeonRoom
+from base.core.mapping.level_map import DungeonLevel, DungeonRoom, ObjectLevel
 from base.core.creatures.hero import Hero
 from base.core.creatures import SpritesCameraGroup
 from random import choices, randint
@@ -42,7 +44,7 @@ class Game:
         self.camera = Camera(self.game_surface)
         # курсор
         pygame.mouse.set_visible(False)
-        self.cursor_image = pygame.image.load('D:\\git_lab3_lesson2\\Blastermania\\base\\core\\graphics\\ui'
+        self.cursor_image = pygame.image.load(f'{os.getcwd()}\\base\\core\\graphics\\ui'
                                               '\\crosshair_1.png').convert_alpha()
         # музыка
         self.music_files = ['DarkChapel.mp3', 'BehindEnemyStripes.mp3',
@@ -52,7 +54,7 @@ class Game:
     # метод для проигрывания музыки
     def play_background_music(self):
         if not pygame.mixer.music.get_busy():
-            pygame.mixer.music.load(f'D:\\git_lab3_lesson2\\Blastermania\\base'
+            pygame.mixer.music.load(f'{os.getcwd()}\\base'
                                     f'\\music\\background\\{choices(self.music_files)[0]}')
             pygame.mixer.music.play(loops=1)
             pygame.mixer.music.set_volume(0.1)
@@ -126,8 +128,6 @@ class GameSurface:
         # создаёт группы спрайтов
         self.creatures_sprites = SpritesCameraGroup()
         self.tiles_sprites = SpritesCameraGroup()
-        # генератор монстров
-        self.monsters = MonsterFabric({'goblin': Goblin, 'slime': Slime, 'fly': FlyingCreature}, self.creatures_sprites)
         # список со всеми уровнями
         try:
             self.levels = self.generate_dungeon(count_levels, size_compare[map_size],
@@ -137,11 +137,17 @@ class GameSurface:
                                                 size_compare[0][0] - 4)
         self.current_level = 0
 
+        self.rooms = list(filter(lambda x: isinstance(x, ObjectLevel), self.levels[self.current_level].objects))
+        # генератор монстров
+        self.monsters = MonsterFabric({'goblin': Goblin, 'slime': Slime, 'fly': FlyingCreature},
+                                      self.creatures_sprites, self.rooms)
         # генерирует монстров
-        self.generate_monsters(1, 2)
+        self.generate_monsters(1, 1)
 
         # создаёт игрока
-        self.hero = Hero(self.center[0], self.center[1], [0, 0], self.creatures_sprites)
+        self.hero = Hero(self.center[0], self.center[1], [0, 0],
+                         self.rooms,
+                         self.creatures_sprites)
         self.creatures_sprites.add(self.hero)
         self.tiles_sprites.add(*self.levels[self.current_level].tiles)
         # добавляет группы спрайтов на уровни
