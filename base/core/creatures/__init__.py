@@ -35,7 +35,7 @@ class ObjectLevel:
 class MovingObject(ObjectLevel):
     def __init__(self, sizes, x, y, speed):
         super().__init__(sizes, x, y)
-        self.speed = speed
+        self.speed = pygame.Vector2(*speed)
 
     def draw(self, camera, color=pygame.Color('white')):
         super().draw(camera, color)

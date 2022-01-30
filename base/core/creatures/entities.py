@@ -40,3 +40,8 @@ class Potion(AnimatedSprite):
         if self.is_visible:
             if 0 <= self.pickable_timer < self.pickable_time:
                 self.pickable_timer += 1
+
+
+def Bullet(AnimatedSprite):
+    # self.speed = pygame.Vector2(x_курсора - x_игрока, y_курсора - y_игрока).scale_to_length(скорость_пули)
+    pass
