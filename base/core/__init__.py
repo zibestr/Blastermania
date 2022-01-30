@@ -93,7 +93,6 @@ class Game:
             self.game_surface.hero.is_running = False
         self.game_surface.hero.speed.x = (keys[pygame.K_d] - keys[pygame.K_a]) * speed
         self.game_surface.hero.speed.y = (keys[pygame.K_s] - keys[pygame.K_w]) * speed
-        print(self.game_surface.hero.speed)
 
     # метод для обновления всех процессов в игре
     def update(self):
@@ -141,20 +140,20 @@ class GameSurface:
         self.rooms = list(filter(lambda x: isinstance(x, ObjectLevel), self.levels[self.current_level].objects))
         # генератор монстров
         self.monsters = MonsterFabric({'goblin': Goblin, 'slime': Slime, 'fly': FlyingCreature},
-                                      self.creatures_sprites, self.rooms, None)
+                                      self.creatures_sprites, self.rooms)
         # генерирует монстров
         self.generate_entities(1, 1)
-
         # создаёт игрока
         self.hero = Hero(self.center[0], self.center[1], [0, 0],
                          self.rooms,
                          self.creatures_sprites)
         self.creatures_sprites.add(self.hero)
+        for monster in self.monsters.container:
+            monster.hero = self.hero
         self.tiles_sprites.add(*self.levels[self.current_level].tiles)
         # добавляет группы спрайтов на уровни
         self.levels[self.current_level].objects.append(self.creatures_sprites)
         self.levels[self.current_level].objects.append(self.tiles_sprites)
-        self.monsters.hero = self.hero
 
     # обновляет текущий уровень
     def update_level(self):

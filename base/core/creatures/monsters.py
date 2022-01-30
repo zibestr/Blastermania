@@ -1,23 +1,20 @@
 from random import choice
-
-
-# класс, отвечающий за производство экземпляров классов монстров
 from base.core.mapping.level_map import DungeonRoom
 from base.core.creatures.entities import Chest
 
 
+# класс, отвечающий за производство экземпляров классов монстров
 class MonsterFabric:
-    def __init__(self, types: dict, sprites_group, rooms, hero):
+    def __init__(self, types: dict, sprites_group, rooms):
         self.monster_types = types
         self.sprites_group = sprites_group
         self.container = list()
         self.rooms = rooms
-        self.hero = hero
         self.ai = MonsterAI()
 
     def create_random_monster(self, x, y):
         monster_type = self.monster_types[choice(list(self.monster_types.keys()))]
-        self.container.append(monster_type(x, y, [0, 0], self.rooms, self.ai, self.hero, self.sprites_group))
+        self.container.append(monster_type(x, y, [0, 0], self.rooms, self.ai, self.sprites_group))
         return self.container[-1]
 
     # создаёт 4 сундука
