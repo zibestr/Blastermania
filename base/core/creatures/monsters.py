@@ -31,5 +31,7 @@ class MonsterFabric:
 
 # класс с ИИ монстров
 class MonsterAI:
+    # поставь монстрам такую скорость
+    # self.speed = pygame.Vector2(x_монстра - x_игрока, y_монстра - y_игрока).scale_to_length(скорость_монстра)
     def run(self, room_rect, monster_rect, hero_rect):
         pass

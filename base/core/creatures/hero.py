@@ -54,13 +54,14 @@ class Hero(RunningSprite):
 
     def move(self):
         if 0 < self.dodge_tick < self.dodge_limit and not self.is_collision:
-            if abs(self.speed[0]) < 2 * 1.8 and abs(self.speed[1]) < 2 * 1.8:
-                self.speed = [self.speed[0] * 1.8, self.speed[1] * 1.8]
+            if abs(self.speed[0]) < 2 * 3 and abs(self.speed[1]) < 2 * 3:
+                self.speed = [self.speed[0] * 3, self.speed[1] * 3]
             self.dodge_tick += 1
             self.dead_inside = True
         elif self.is_collision:
             self.speed = [0, 0]
-        else:
+        elif self.dodge_limit < self.dodge_tick:
+            self.speed = [self.speed[0] / 3, self.speed[1] / 3]
             self.dodge_tick = 0
             self.dead_inside = False
         if self.dodge_time != 0:
