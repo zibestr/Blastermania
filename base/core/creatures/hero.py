@@ -64,6 +64,8 @@ class Hero(RunningSprite):
             self.speed = [self.speed[0] / 3, self.speed[1] / 3]
             self.dodge_tick = 0
             self.dead_inside = False
+        else:
+            self.dead_inside = False
         if self.dodge_time != 0:
             if self.dodge_time >= self.dodge_cooldown:
                 self.dodge_time = 0
