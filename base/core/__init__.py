@@ -86,13 +86,14 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LSHIFT:
                     self.game_surface.hero.dodge()
-            keys = pygame.key.get_pressed()
-            if abs(keys[pygame.K_d] - keys[pygame.K_a]) > 0 or abs(keys[pygame.K_s] - keys[pygame.K_w]) > 0:
-                self.game_surface.hero.is_running = True
-            else:
-                self.game_surface.hero.is_running = False
-            self.game_surface.hero.speed = (keys[pygame.K_d] - keys[pygame.K_a]) * speed, \
-                                           (keys[pygame.K_s] - keys[pygame.K_w]) * speed
+        keys = pygame.key.get_pressed()
+        if abs(keys[pygame.K_d] - keys[pygame.K_a]) > 0 or abs(keys[pygame.K_s] - keys[pygame.K_w]) > 0:
+            self.game_surface.hero.is_running = True
+        else:
+            self.game_surface.hero.is_running = False
+        self.game_surface.hero.speed.x = (keys[pygame.K_d] - keys[pygame.K_a]) * speed
+        self.game_surface.hero.speed.y = (keys[pygame.K_s] - keys[pygame.K_w]) * speed
+        print(self.game_surface.hero.speed)
 
     # метод для обновления всех процессов в игре
     def update(self):
@@ -140,7 +141,7 @@ class GameSurface:
         self.rooms = list(filter(lambda x: isinstance(x, ObjectLevel), self.levels[self.current_level].objects))
         # генератор монстров
         self.monsters = MonsterFabric({'goblin': Goblin, 'slime': Slime, 'fly': FlyingCreature},
-                                      self.creatures_sprites, self.rooms)
+                                      self.creatures_sprites, self.rooms, None)
         # генерирует монстров
         self.generate_entities(1, 1)
 
@@ -153,6 +154,7 @@ class GameSurface:
         # добавляет группы спрайтов на уровни
         self.levels[self.current_level].objects.append(self.creatures_sprites)
         self.levels[self.current_level].objects.append(self.tiles_sprites)
+        self.monsters.hero = self.hero
 
     # обновляет текущий уровень
     def update_level(self):

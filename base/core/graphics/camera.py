@@ -18,8 +18,8 @@ class Camera:
     def move(self):
         if not self.rendering_surface.hero.is_collision:
             delta = self.rendering_surface.hero.speed
-            self.rect.x += delta[0]
-            self.rect.y += delta[1]
+            self.rect.x += delta.x
+            self.rect.y += delta.y
 
     # рендарит поверхность для отрисовки с учётом масштаба
     def render_surface(self):
