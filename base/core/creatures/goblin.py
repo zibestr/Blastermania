@@ -16,3 +16,11 @@ class Goblin(RunningSprite):
     def update(self):
         super().update()
         self.ai.run(self, self.hero)
+
+    def move(self):
+        super().move()
+        if self.speed.x != 0 or self.speed.y != 0:
+            self.is_running = True
+        else:
+            self.is_running = False
+
