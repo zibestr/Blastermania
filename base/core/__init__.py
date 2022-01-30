@@ -154,8 +154,7 @@ class GameSurface:
         # добавляет группы спрайтов на уровни
         self.levels[self.current_level].objects.append(self.creatures_sprites)
         self.levels[self.current_level].objects.append(self.tiles_sprites)
-        for i in self.monsters.container:
-            i.hero = self.hero
+        self.monsters.hero = self.hero
 
     # обновляет текущий уровень
     def update_level(self):
