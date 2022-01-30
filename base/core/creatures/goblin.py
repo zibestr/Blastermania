@@ -16,3 +16,4 @@ class Goblin(RunningSprite):
     # для интеллекта
     def update(self):
         super().update()
+        self.ai.run(self, self.hero)

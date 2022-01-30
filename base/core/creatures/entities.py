@@ -14,7 +14,7 @@ class Chest(AnimatedSprite):
         super().__init__('chest\\chest_spritesheet.png', 8, 1, x, y, [0, 0], group)
         self.container = Potion(self.rect.x, self.rect.y, self.groups()[0])
         self.is_opened = False
-
+    
     def open(self):
         open_sound.play()
         self.update_animation(['chest\\chest_open.png', 1, 1])
@@ -29,12 +29,12 @@ class Potion(AnimatedSprite):
         self.is_visible = False
         self.pickable_timer = 0
         self.pickable_time = 10
-
+    
     def pick_up(self, hero):
         if self.rect.colliderect(hero.rect):
             hero.hp += self.hp_heal
             self.is_visible = False
-
+    
     def update(self):
         super().update()
         if self.is_visible:
@@ -42,6 +42,12 @@ class Potion(AnimatedSprite):
                 self.pickable_timer += 1
 
 
-def Bullet(AnimatedSprite):
-    # self.speed = pygame.Vector2(x_курсора - x_игрока, y_курсора - y_игрока).scale_to_length(скорость_пули)
-    pass
+class Bullet(AnimatedSprite):
+    def __init__(self, x, y, group):
+        super().__init__('bullet\\bullets.png', 11, 1, x, y, [0, 0], group)
+    
+    def shoot(self, pos):
+        self.speed = pygame.Vector2(pos[0] - 960 // 2, pos[1] - 720 // 2).normalize() * 3
+        print(self.rect, pos)
+
+# self.speed = pygame.Vector2(x_курсора - x_игрока, y_курсора - y_игрока).scale_to_length(скорость_пули)
