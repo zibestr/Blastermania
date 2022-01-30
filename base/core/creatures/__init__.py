@@ -66,9 +66,15 @@ class SpritesCameraGroup(pygame.sprite.Group):
     def draw(self, camera):
         for sprite in self.sprites():
             if sprite.rect.colliderect(camera.rect):
-                x = sprite.rect.x - camera.rect.x
-                y = sprite.rect.y - camera.rect.y
-                camera.rendering_surface.surface.blit(sprite.image, (x, y))
+                try:
+                    if sprite.is_visible:
+                        x = sprite.rect.x - camera.rect.x
+                        y = sprite.rect.y - camera.rect.y
+                        camera.rendering_surface.surface.blit(sprite.image, (x, y))
+                except AttributeError:
+                    x = sprite.rect.x - camera.rect.x
+                    y = sprite.rect.y - camera.rect.y
+                    camera.rendering_surface.surface.blit(sprite.image, (x, y))
 
     def update(self):
         for sprite in self.sprites():

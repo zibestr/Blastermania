@@ -57,7 +57,7 @@ class Game:
             pygame.mixer.music.load(f'{os.getcwd()}\\base'
                                     f'\\music\\background\\{choices(self.music_files)[0]}')
             pygame.mixer.music.play(loops=1)
-            pygame.mixer.music.set_volume(0.1)
+            pygame.mixer.music.set_volume(0.08)
 
     # метод для отрисовки всей игры
     def render(self):
@@ -142,7 +142,7 @@ class GameSurface:
         self.monsters = MonsterFabric({'goblin': Goblin, 'slime': Slime, 'fly': FlyingCreature},
                                       self.creatures_sprites, self.rooms)
         # генерирует монстров
-        self.generate_monsters(1, 1)
+        self.generate_entities(1, 1)
 
         # создаёт игрока
         self.hero = Hero(self.center[0], self.center[1], [0, 0],
@@ -166,11 +166,12 @@ class GameSurface:
     def generate_dungeon(self, count, board_sizes, tries):
         dungeon = list()
         for _ in range(count):
-            dungeon.append(DungeonLevel(self.surface.get_size(), board_sizes, tries, self.tiles_sprites))
+            dungeon.append(DungeonLevel(self.surface.get_size(), board_sizes, tries,
+                                        self.tiles_sprites))
         return dungeon
 
-    # метод для генерации монстров
-    def generate_monsters(self, min_count, max_count):
+    # метод для генерации монстров и сундуков
+    def generate_entities(self, min_count, max_count):
         for obj in self.levels[self.current_level].objects:
             if isinstance(obj, DungeonRoom):
                 if obj is not self.levels[self.current_level].spawn_room:
@@ -179,6 +180,7 @@ class GameSurface:
                         y = randint(obj.rect.y + 10, obj.rect.bottom - 50)
                         monster = self.monsters.create_random_monster(x, y)
                         self.creatures_sprites.add(monster)
+        self.monsters.create_chests()
 
     # центр поверхности
     @property

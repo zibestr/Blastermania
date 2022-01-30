@@ -43,15 +43,17 @@ class Hero(RunningSprite):
         self.dodge_time = 0
 
     def dodge(self):
-        if self.dodge_time == 0:
+        if self.dodge_time == 0 and not self.is_collision:
             dodge_sound.play()
             self.dodge_tick = 1
             self.dodge_time = 1
 
     def move(self):
-        if 0 < self.dodge_tick <= self.dodge_limit:
+        if 0 < self.dodge_tick <= self.dodge_limit and not self.is_collision:
             self.speed = [self.speed[0] * 1.8, self.speed[1] * 1.8]
             self.dodge_tick += 1
+        elif self.is_collision:
+            self.speed = [0, 0]
         else:
             self.dodge_tick = 0
         if self.dodge_time != 0:
@@ -81,6 +83,20 @@ class Hero(RunningSprite):
         super().collision(collision_object)
         try:
             self.get_damage(collision_object.attack)
+        except AttributeError:
+            pass
+
+        try:
+            if collision_object.is_visible and \
+                    collision_object.pickable_timer == collision_object.pickable_time \
+                    and self.hp != self.max_hp:
+                collision_object.pick_up(self)
+        except AttributeError:
+            pass
+
+        try:
+            if not collision_object.is_opened:
+                collision_object.open()
         except AttributeError:
             pass
 

@@ -1,6 +1,7 @@
 import random
 import pygame
 import math
+
 from base.core.mapping.tiles_map import FloorTile
 
 # grey stone
@@ -14,8 +15,8 @@ class DungeonLevel:
         # объекты, расположенные на уровне
         self.objects = list()
         # размеры комнаты на уровне
-        self.room_sizes = (math.ceil(min(surface_sizes) / 2),
-                           math.ceil(min(surface_sizes) / 2))
+        self.room_sizes = (math.ceil(min(surface_sizes) / 3 * 2),
+                           math.ceil(min(surface_sizes) / 3 * 2))
         # размеры для вертикального коридора
         self.corridor_sizes = (self.room_sizes[0] / 3,
                                self.room_sizes[1])
@@ -43,7 +44,7 @@ class DungeonLevel:
     def regenerate(self):
         self.level_map = self.generator(self.tries)
 
-    # заменить числа на карте на объекты нужны классов
+    # заменить числа на карте на объекты нужных классов
     def fill_map(self, tiles_group):
         for i in range(len(self.level_map)):
             for j in range(len(self.level_map[i])):
