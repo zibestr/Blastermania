@@ -43,8 +43,8 @@ class MovingObject(ObjectLevel):
     def move(self):
         self.rect.x += self.speed[0]
         self.rect.y += self.speed[1]
-        index = self.rect.collidelist(list(filter(lambda x: x is not self, self.groups()[0].sprites())))
-        if index != -1:
+        indexes = self.rect.collidelistall(list(filter(lambda x: x is not self, self.groups()[0].sprites())))
+        for index in indexes:
             self.collision(self.groups()[0].sprites()[index])
 
     # функция коллизии

@@ -38,9 +38,13 @@ class Hero(RunningSprite):
 
         # переменные, связанные с уклонением
         self.dodge_tick = 0
-        self.dodge_limit = 2
+        self.dodge_limit = 30
         self.dodge_cooldown = 120 * 1.8
         self.dodge_time = 0
+        self.dead_inside = False
+
+    def shoot(self):
+        pass
 
     def dodge(self):
         if self.dodge_time == 0 and not self.is_collision:
@@ -49,13 +53,16 @@ class Hero(RunningSprite):
             self.dodge_time = 1
 
     def move(self):
-        if 0 < self.dodge_tick <= self.dodge_limit and not self.is_collision:
-            self.speed = [self.speed[0] * 1.8, self.speed[1] * 1.8]
+        if 0 < self.dodge_tick < self.dodge_limit and not self.is_collision:
+            if abs(self.speed[0]) < 2 * 1.8 and abs(self.speed[1]) < 2 * 1.8:
+                self.speed = [self.speed[0] * 1.8, self.speed[1] * 1.8]
             self.dodge_tick += 1
+            self.dead_inside = True
         elif self.is_collision:
             self.speed = [0, 0]
         else:
             self.dodge_tick = 0
+            self.dead_inside = False
         if self.dodge_time != 0:
             if self.dodge_time >= self.dodge_cooldown:
                 self.dodge_time = 0
@@ -71,7 +78,7 @@ class Hero(RunningSprite):
             self.time_damaged = 0
 
     def get_damage(self, damage):
-        if self.time_damaged == 0 and self.is_alive:
+        if self.time_damaged == 0 and self.is_alive and not self.dead_inside:
             self.hp -= damage
             hit_sound.play()
             if self.hp == 0:
@@ -81,11 +88,12 @@ class Hero(RunningSprite):
 
     def collision(self, collision_object):
         super().collision(collision_object)
+        # коллизия с врагами
         try:
             self.get_damage(collision_object.attack)
         except AttributeError:
             pass
-
+        # коллизия с зельями
         try:
             if collision_object.is_visible and \
                     collision_object.pickable_timer == collision_object.pickable_time \
@@ -93,10 +101,9 @@ class Hero(RunningSprite):
                 collision_object.pick_up(self)
         except AttributeError:
             pass
-
+        # коллизия с сундуками
         try:
             if not collision_object.is_opened:
                 collision_object.open()
         except AttributeError:
             pass
-

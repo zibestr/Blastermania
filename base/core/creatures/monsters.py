@@ -19,9 +19,11 @@ class MonsterFabric:
         return self.container[-1]
 
     # создаёт 4 сундука
-    def create_chests(self):
+    def create_chests(self, spawn_room):
         for _ in range(4):
             room = choice(list(filter(lambda elem: isinstance(elem, DungeonRoom), self.rooms)))
+            while room is spawn_room:
+                room = choice(list(filter(lambda elem: isinstance(elem, DungeonRoom), self.rooms)))
             chest = Chest(*room.rect.center, self.sprites_group)
             self.container.append(chest)
             self.sprites_group.add(chest)

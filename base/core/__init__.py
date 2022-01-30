@@ -180,7 +180,7 @@ class GameSurface:
                         y = randint(obj.rect.y + 10, obj.rect.bottom - 50)
                         monster = self.monsters.create_random_monster(x, y)
                         self.creatures_sprites.add(monster)
-        self.monsters.create_chests()
+        self.monsters.create_chests(self.levels[self.current_level].spawn_room)
 
     # центр поверхности
     @property
