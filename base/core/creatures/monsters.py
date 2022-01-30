@@ -1,4 +1,5 @@
 from random import choice
+from pygame import Vector2
 from base.core.mapping.level_map import DungeonRoom
 from base.core.creatures.entities import Chest
 
@@ -31,6 +32,15 @@ class MonsterFabric:
 # класс с ИИ монстров
 class MonsterAI:
     # поставь монстрам такую скорость
-    # self.speed = pygame.Vector2(x_монстра - x_игрока, y_монстра - y_игрока).scale_to_length(скорость_монстра)
-    def run(self, room_rect, monster_rect, hero_rect):
-        pass
+    # self.speed = pygame.Vector2(xмонстра - xигрока, yмонстра - yигрока).scale_tolength(скоростьмонстра)
+    def run(self, monster, hero):
+        monster_speed = 0.01
+        hero_vector = Vector2(hero.rect.x, hero.rect.y)
+        monster_vector = Vector2(monster.rect.x, monster.rect.y)
+        movement = hero_vector - monster_vector
+        try:
+            movement.normalize()
+        except ValueError:
+            pass
+        movement *= monster_speed
+        monster.speed = movement
