@@ -84,9 +84,11 @@ class Hero(RunningSprite):
         if self.time_damaged == 0 and self.is_alive and not self.dead_inside:
             self.hp -= damage
             hit_sound.play()
+            self.hit_animation()
             if self.hp == 0:
                 self.is_alive = False
                 death_sound.play()
+                self.death_animation()
             self.time_damaged = 1
 
     def collision(self, collision_object):

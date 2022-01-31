@@ -154,6 +154,27 @@ class AnimatedSprite(MovingSprite):
         self.move()
 
 
+# класс реализующий анимации
+class Animation(AnimatedSprite):
+    def __init__(self, animation_name, columns, rows, parent, *group):
+        super().__init__(animation_name, columns, rows,
+                         parent.rect.x, parent.rect.y, [0, 0], *group)
+        self.is_visible = True
+        self.limit = 8
+        self.parent = parent
+
+    def update(self):
+        self.rect.move(self.parent.rect.center)
+        if self.counter == self.limit:
+            self.counter = 0
+            self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+            self.image = self.frames[self.cur_frame]
+            if self.cur_frame == 0:
+                self.is_visible = False
+        else:
+            self.counter += 1
+
+
 # реализация класса с анимацией для бега
 class RunningSprite(AnimatedSprite):
     # аргументы idle_spritesheet и run_spritesheet соответствуют сигнатуре словаря spritesheets
@@ -167,6 +188,7 @@ class RunningSprite(AnimatedSprite):
         self.direction = 1
         self.rooms = rooms
         self.is_collision = False
+        self.is_visible = True
 
     def update(self):
         if self.is_running and self.cur_spritesheet != self.spritesheets['run'] or self.direction * self.speed[0] < 0:
@@ -213,3 +235,14 @@ class RunningSprite(AnimatedSprite):
                     self.back()
             else:
                 self.is_collision = False
+
+    def hit_animation(self):
+        animation = Animation('hit\\hit_effect_anim_spritesheet.png', 3, 1,
+                              self, self.groups()[0])
+        self.groups()[0].add(animation)
+
+    def death_animation(self):
+        animation = Animation('death\\enemy_afterdead_explosion_anim_spritesheet.png', 3, 1,
+                              self, self.groups()[0])
+        self.groups()[0].add(animation)
+        self.is_visible = False

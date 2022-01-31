@@ -1,23 +1,21 @@
 from random import choice
-
-
-# класс, отвечающий за производство экземпляров классов монстров
+from pygame import Vector2
 from base.core.mapping.level_map import DungeonRoom
 from base.core.creatures.entities import Chest
 
 
+# класс, отвечающий за производство экземпляров классов монстров
 class MonsterFabric:
-    def __init__(self, types: dict, sprites_group, rooms, hero):
+    def __init__(self, types: dict, sprites_group, rooms):
         self.monster_types = types
         self.sprites_group = sprites_group
         self.container = list()
         self.rooms = rooms
-        self.hero = hero
         self.ai = MonsterAI()
 
     def create_random_monster(self, x, y):
         monster_type = self.monster_types[choice(list(self.monster_types.keys()))]
-        self.container.append(monster_type(x, y, [0, 0], self.rooms, self.ai, self.hero, self.sprites_group))
+        self.container.append(monster_type(x, y, [0, 0], self.rooms, self.ai, self.sprites_group))
         return self.container[-1]
 
     # создаёт 4 сундука
@@ -33,7 +31,33 @@ class MonsterFabric:
 
 # класс с ИИ монстров
 class MonsterAI:
-    # поставь монстрам такую скорость
-    # self.speed = pygame.Vector2(x_монстра - x_игрока, y_монстра - y_игрока).scale_to_length(скорость_монстра)
-    def run(self, room_rect, monster_rect, hero_rect):
-        pass
+    def run(self, monster, hero):
+        if hero.is_alive:
+            if hero.rect.colliderect(monster.start_room.rect):
+                monster_speed = 0.01
+                hero_vector = Vector2(hero.rect.x, hero.rect.y)
+                monster_vector = Vector2(monster.rect.x, monster.rect.y)
+                movement = hero_vector - monster_vector
+                try:
+                    movement.normalize()
+                except ValueError:
+                    pass
+                movement *= monster_speed
+                monster.speed = movement
+            else:
+                if monster.rect.x != monster.start_x or monster.rect.y != monster.start_y:
+                    monster_speed = 0.01
+                    start_vector = Vector2(monster.start_x, monster.start_y)
+                    monster_vector = Vector2(monster.rect.x, monster.rect.y)
+                    movement = start_vector - monster_vector
+                    try:
+                        movement.normalize()
+                    except ValueError:
+                        pass
+                    movement *= monster_speed
+                    monster.speed = movement
+                else:
+                    monster.speed *= 0
+        else:
+            monster.speed *= 0
+

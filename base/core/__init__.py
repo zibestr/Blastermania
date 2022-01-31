@@ -7,16 +7,26 @@ from base.core.creatures.goblin import Goblin
 from base.core.creatures.monsters import MonsterFabric
 from base.core.creatures.slime import Slime
 from base.core.graphics.camera import Camera
+from base.core.graphics.game_over_menu import GameOverUI
 from base.core.graphics.pause_menu import MenuUI
 from base.core.graphics.hud import HUD
 from base.core.mapping.level_map import DungeonLevel, DungeonRoom, ObjectLevel
 from base.core.creatures.hero import Hero
 from base.core.creatures import SpritesCameraGroup
-from random import choices, randint
+from random import choices, randint, choice
 
 # инициализируем pygame
 
 pygame.init()
+
+
+sounds_path = f'{os.getcwd()}\\base\\music\\sounds'
+menu_sounds = [pygame.mixer.Sound(os.path.join(sounds_path, 'menu_1.wav')),
+               pygame.mixer.Sound(os.path.join(sounds_path, 'menu_2.wav')),
+               pygame.mixer.Sound(os.path.join(sounds_path, 'menu_3.wav')),
+               pygame.mixer.Sound(os.path.join(sounds_path, 'menu_4.wav'))]
+for sound in menu_sounds:
+    sound.set_volume(0.04)
 
 
 # основной класс проекта (ВНОСИТЬ ИЗМЕНЕНИЯ ТОЛЬКО С СОГЛАСИЯ ТИМЛИДА!!!)
@@ -38,68 +48,114 @@ class Game:
         # menu_surface - поверхность для отрисовки меню
         # hud_surface - поверхность для отрисовки интерфейса игрока
         self.game_surface = GameSurface(self.window_sizes, 1, 1)
-        self.menu_surface = MenuUI(self.window_sizes)
+        self.menu_surface = MenuUI(self.window_sizes, self)
         self.hud_surface = HUD(self.window_sizes, self.game_surface.hero)
+        self.game_over_surface = GameOverUI(self.window_sizes)
         # камера
         self.camera = Camera(self.game_surface)
         # курсор
         pygame.mouse.set_visible(False)
         self.cursor_image = pygame.image.load(f'{os.getcwd()}\\base\\core\\graphics\\ui'
                                               '\\crosshair_1.png').convert_alpha()
+        self.pause_cursor = pygame.image.load(f'{os.getcwd()}\\base\\core\\graphics\\ui'
+                                              '\\cursor.png').convert_alpha()
         # музыка
         self.music_files = ['DarkChapel.mp3', 'BehindEnemyStripes.mp3',
                             'CarefreeSpirit.mp3', 'DunesOfTheLost.mp3',
-                            'HiddenUtopia.mp3', 'Spinetingler.mp3']
+                            'HiddenUtopia.mp3', 'Spinetingler.mp3',
+                            'CircusThief.mp3']
+        self.game_over_music = 'DullMeeting.mp3'
+        self.is_game_over = False
+        self.is_music = True
 
     # метод для проигрывания музыки
     def play_background_music(self):
-        if not pygame.mixer.music.get_busy():
+        hero_alive = self.game_surface.hero.is_alive
+        if not pygame.mixer.music.get_busy() and self.is_music and hero_alive:
             pygame.mixer.music.load(f'{os.getcwd()}\\base'
                                     f'\\music\\background\\{choices(self.music_files)[0]}')
             pygame.mixer.music.play(loops=1)
             pygame.mixer.music.set_volume(0.08)
+        elif not hero_alive and not self.is_game_over:
+            self.is_game_over = True
+            pygame.mixer.music.load(f'{os.getcwd()}\\base'
+                                    f'\\music\\game_over\\{self.game_over_music}')
+            pygame.mixer.music.play(loops=-1)
+            pygame.mixer.music.set_volume(0.08)
 
     # метод для отрисовки всей игры
     def render(self):
+        self.display.fill(pygame.Color('white'))
+        # отрисовка основной поверхности
+        self.display.blit(self.camera.render_surface(), (0, 0))
+        # отрисовка интерфейса игрока
+        self.display.blit(self.hud_surface.render(), (0, 0))
+        # заменяет курсор
         if not self.pause:
-            self.display.fill(pygame.Color('white'))
-            # отрисовка основной поверхности
-            self.display.blit(self.camera.render_surface(), (0, 0))
-            # отрисовка интерфейса игрока
-            self.display.blit(self.hud_surface.render(), (0, 0))
-            # заменяет курсор
             self.display.blit(pygame.transform.scale(self.cursor_image,
                                                      (self.window_sizes[0] * 0.03,
                                                       self.window_sizes[0] * 0.03)),
                               (pygame.mouse.get_pos()))
+        if self.pause:
+            self.display.blit(self.menu_surface.render(), [0, 0])
+            self.display.blit(pygame.transform.scale(self.pause_cursor,
+                                                     (self.window_sizes[0] * 0.05,
+                                                      self.window_sizes[0] * 0.05)),
+                              (pygame.mouse.get_pos()))
+        if self.is_game_over:
+            self.display.blit(self.game_over_surface.render(), (0, 0))
 
     # метод для обработки событий
     def event_handler(self):
         speed = 2
-
         for event in pygame.event.get():
-            # если игра на паузе, то ничего не делает
-            if self.pause:
-                break
             if event.type == pygame.QUIT:
                 self.game_running = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LSHIFT:
-                    self.game_surface.hero.dodge()
-        keys = pygame.key.get_pressed()
-        if abs(keys[pygame.K_d] - keys[pygame.K_a]) > 0 or abs(keys[pygame.K_s] - keys[pygame.K_w]) > 0:
-            self.game_surface.hero.is_running = True
-        else:
-            self.game_surface.hero.is_running = False
-        self.game_surface.hero.speed.x = (keys[pygame.K_d] - keys[pygame.K_a]) * speed
-        self.game_surface.hero.speed.y = (keys[pygame.K_s] - keys[pygame.K_w]) * speed
-        print(self.game_surface.hero.speed)
+            if not self.pause:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LSHIFT:
+                        self.game_surface.hero.dodge()
+                    if event.key == pygame.K_ESCAPE and not self.is_game_over:
+                        self.pause = True
+                        choice(menu_sounds).play()
+            if self.is_game_over:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+            else:
+                if not self.is_game_over:
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            self.pause = False
+                            choice(menu_sounds).play()
+                    # отслеживание нажатий в меню игры
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        pos = pygame.mouse.get_pos()
+                        if self.menu_surface.buttons['continue'].collidepoint(pos):
+                            self.pause = False
+                            choice(menu_sounds).play()
+                        if self.menu_surface.buttons['exit'].collidepoint(pos):
+                            choice(menu_sounds).play()
+                            pygame.quit()
+                        if self.menu_surface.buttons['music'].collidepoint(pos):
+                            self.is_music = not self.is_music
+                            choice(menu_sounds).play()
+        if not self.pause:
+            keys = pygame.key.get_pressed()
+            if abs(keys[pygame.K_d] - keys[pygame.K_a]) > 0 or abs(keys[pygame.K_s] - keys[pygame.K_w]) > 0:
+                self.game_surface.hero.is_running = True
+            else:
+                self.game_surface.hero.is_running = False
+            self.game_surface.hero.speed.x = (keys[pygame.K_d] - keys[pygame.K_a]) * speed
+            self.game_surface.hero.speed.y = (keys[pygame.K_s] - keys[pygame.K_w]) * speed
 
     # метод для обновления всех процессов в игре
     def update(self):
         if not self.pause:
             self.game_surface.update_level()
             self.camera.move()
+        else:
+            pygame.mixer.music.pause()
 
     # метод для запуска игры
     def run(self):
@@ -141,20 +197,20 @@ class GameSurface:
         self.rooms = list(filter(lambda x: isinstance(x, ObjectLevel), self.levels[self.current_level].objects))
         # генератор монстров
         self.monsters = MonsterFabric({'goblin': Goblin, 'slime': Slime, 'fly': FlyingCreature},
-                                      self.creatures_sprites, self.rooms, None)
+                                      self.creatures_sprites, self.rooms)
         # генерирует монстров
         self.generate_entities(1, 1)
-
         # создаёт игрока
         self.hero = Hero(self.center[0], self.center[1], [0, 0],
                          self.rooms,
                          self.creatures_sprites)
         self.creatures_sprites.add(self.hero)
+        for monster in self.monsters.container:
+            monster.hero = self.hero
         self.tiles_sprites.add(*self.levels[self.current_level].tiles)
         # добавляет группы спрайтов на уровни
         self.levels[self.current_level].objects.append(self.creatures_sprites)
         self.levels[self.current_level].objects.append(self.tiles_sprites)
-        self.monsters.hero = self.hero
 
     # обновляет текущий уровень
     def update_level(self):

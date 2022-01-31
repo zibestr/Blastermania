@@ -16,7 +16,7 @@ class Camera:
 
     # метод для движения камеры
     def move(self):
-        if not self.rendering_surface.hero.is_collision:
+        if not self.rendering_surface.hero.is_collision and self.rendering_surface.hero.is_alive:
             delta = self.rendering_surface.hero.speed
             self.rect.x += delta.x
             self.rect.y += delta.y
