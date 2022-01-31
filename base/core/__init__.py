@@ -12,11 +12,20 @@ from base.core.graphics.hud import HUD
 from base.core.mapping.level_map import DungeonLevel, DungeonRoom, ObjectLevel
 from base.core.creatures.hero import Hero
 from base.core.creatures import SpritesCameraGroup
-from random import choices, randint
+from random import choices, randint, choice
 
 # инициализируем pygame
 
 pygame.init()
+
+
+sounds_path = f'{os.getcwd()}\\base\\music\\sounds'
+menu_sounds = [pygame.mixer.Sound(os.path.join(sounds_path, 'menu_1.wav')),
+               pygame.mixer.Sound(os.path.join(sounds_path, 'menu_2.wav')),
+               pygame.mixer.Sound(os.path.join(sounds_path, 'menu_3.wav')),
+               pygame.mixer.Sound(os.path.join(sounds_path, 'menu_4.wav'))]
+for sound in menu_sounds:
+    sound.set_volume(0.04)
 
 
 # основной класс проекта (ВНОСИТЬ ИЗМЕНЕНИЯ ТОЛЬКО С СОГЛАСИЯ ТИМЛИДА!!!)
@@ -38,7 +47,7 @@ class Game:
         # menu_surface - поверхность для отрисовки меню
         # hud_surface - поверхность для отрисовки интерфейса игрока
         self.game_surface = GameSurface(self.window_sizes, 1, 1)
-        self.menu_surface = MenuUI(self.window_sizes)
+        self.menu_surface = MenuUI(self.window_sizes, self)
         self.hud_surface = HUD(self.window_sizes, self.game_surface.hero)
         # камера
         self.camera = Camera(self.game_surface)
@@ -46,14 +55,17 @@ class Game:
         pygame.mouse.set_visible(False)
         self.cursor_image = pygame.image.load(f'{os.getcwd()}\\base\\core\\graphics\\ui'
                                               '\\crosshair_1.png').convert_alpha()
+        self.pause_cursor = pygame.image.load(f'{os.getcwd()}\\base\\core\\graphics\\ui'
+                                              '\\cursor.png').convert_alpha()
         # музыка
         self.music_files = ['DarkChapel.mp3', 'BehindEnemyStripes.mp3',
                             'CarefreeSpirit.mp3', 'DunesOfTheLost.mp3',
                             'HiddenUtopia.mp3', 'Spinetingler.mp3']
+        self.is_music = True
 
     # метод для проигрывания музыки
     def play_background_music(self):
-        if not pygame.mixer.music.get_busy():
+        if not pygame.mixer.music.get_busy() and self.is_music:
             pygame.mixer.music.load(f'{os.getcwd()}\\base'
                                     f'\\music\\background\\{choices(self.music_files)[0]}')
             pygame.mixer.music.play(loops=1)
@@ -61,44 +73,70 @@ class Game:
 
     # метод для отрисовки всей игры
     def render(self):
+        self.display.fill(pygame.Color('white'))
+        # отрисовка основной поверхности
+        self.display.blit(self.camera.render_surface(), (0, 0))
+        # отрисовка интерфейса игрока
+        self.display.blit(self.hud_surface.render(), (0, 0))
+        # заменяет курсор
         if not self.pause:
-            self.display.fill(pygame.Color('white'))
-            # отрисовка основной поверхности
-            self.display.blit(self.camera.render_surface(), (0, 0))
-            # отрисовка интерфейса игрока
-            self.display.blit(self.hud_surface.render(), (0, 0))
-            # заменяет курсор
             self.display.blit(pygame.transform.scale(self.cursor_image,
                                                      (self.window_sizes[0] * 0.03,
                                                       self.window_sizes[0] * 0.03)),
+                              (pygame.mouse.get_pos()))
+        if self.pause:
+            self.display.blit(self.menu_surface.render(), [0, 0])
+            self.display.blit(pygame.transform.scale(self.pause_cursor,
+                                                     (self.window_sizes[0] * 0.05,
+                                                      self.window_sizes[0] * 0.05)),
                               (pygame.mouse.get_pos()))
 
     # метод для обработки событий
     def event_handler(self):
         speed = 2
-
         for event in pygame.event.get():
-            # если игра на паузе, то ничего не делает
-            if self.pause:
-                break
             if event.type == pygame.QUIT:
                 self.game_running = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LSHIFT:
-                    self.game_surface.hero.dodge()
-        keys = pygame.key.get_pressed()
-        if abs(keys[pygame.K_d] - keys[pygame.K_a]) > 0 or abs(keys[pygame.K_s] - keys[pygame.K_w]) > 0:
-            self.game_surface.hero.is_running = True
-        else:
-            self.game_surface.hero.is_running = False
-        self.game_surface.hero.speed.x = (keys[pygame.K_d] - keys[pygame.K_a]) * speed
-        self.game_surface.hero.speed.y = (keys[pygame.K_s] - keys[pygame.K_w]) * speed
+            if not self.pause:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LSHIFT:
+                        self.game_surface.hero.dodge()
+                    if event.key == pygame.K_ESCAPE:
+                        self.pause = True
+                        choice(menu_sounds).play()
+            else:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.pause = False
+                        choice(menu_sounds).play()
+                # отслеживание нажатий в меню игры
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    if self.menu_surface.buttons['continue'].collidepoint(pos):
+                        self.pause = False
+                        choice(menu_sounds).play()
+                    if self.menu_surface.buttons['exit'].collidepoint(pos):
+                        choice(menu_sounds).play()
+                        pygame.quit()
+                    if self.menu_surface.buttons['music'].collidepoint(pos):
+                        self.is_music = not self.is_music
+                        choice(menu_sounds).play()
+        if not self.pause:
+            keys = pygame.key.get_pressed()
+            if abs(keys[pygame.K_d] - keys[pygame.K_a]) > 0 or abs(keys[pygame.K_s] - keys[pygame.K_w]) > 0:
+                self.game_surface.hero.is_running = True
+            else:
+                self.game_surface.hero.is_running = False
+            self.game_surface.hero.speed.x = (keys[pygame.K_d] - keys[pygame.K_a]) * speed
+            self.game_surface.hero.speed.y = (keys[pygame.K_s] - keys[pygame.K_w]) * speed
 
     # метод для обновления всех процессов в игре
     def update(self):
         if not self.pause:
             self.game_surface.update_level()
             self.camera.move()
+        else:
+            pygame.mixer.music.pause()
 
     # метод для запуска игры
     def run(self):

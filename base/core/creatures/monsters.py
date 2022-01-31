@@ -4,7 +4,6 @@ from base.core.mapping.level_map import DungeonRoom
 from base.core.creatures.entities import Chest
 
 
-
 # класс, отвечающий за производство экземпляров классов монстров
 class MonsterFabric:
     def __init__(self, types: dict, sprites_group, rooms):
@@ -33,18 +32,29 @@ class MonsterFabric:
 # класс с ИИ монстров
 class MonsterAI:
     def run(self, monster, hero):
-        index = hero.rect.collidelist(list(filter(lambda elem: isinstance(elem, DungeonRoom), hero.rooms)))
-        if index != -1:
-            room = list(filter(lambda elem: isinstance(elem, DungeonRoom), hero.rooms))[index]
-            if room.rect.colliderect(monster.rect):
+        if hero.rect.colliderect(monster.start_room.rect):
+            monster_speed = 0.01
+            hero_vector = Vector2(hero.rect.x, hero.rect.y)
+            monster_vector = Vector2(monster.rect.x, monster.rect.y)
+            movement = hero_vector - monster_vector
+            try:
+                movement.normalize()
+            except ValueError:
+                pass
+            movement *= monster_speed
+            monster.speed = movement
+        else:
+            if monster.rect.x != monster.start_x or monster.rect.y != monster.start_y:
                 monster_speed = 0.01
-                hero_vector = Vector2(hero.rect.x, hero.rect.y)
+                start_vector = Vector2(monster.start_x, monster.start_y)
                 monster_vector = Vector2(monster.rect.x, monster.rect.y)
-                movement = hero_vector - monster_vector
+                movement = start_vector - monster_vector
                 try:
                     movement.normalize()
                 except ValueError:
                     pass
                 movement *= monster_speed
                 monster.speed = movement
+            else:
+                monster.speed *= 0
 

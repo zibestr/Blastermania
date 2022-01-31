@@ -8,6 +8,9 @@ sounds_path = f'{os.getcwd()}\\base\\music\\sounds'
 open_sound = pygame.mixer.Sound(os.path.join(sounds_path, 'open_chest.wav'))
 open_sound.set_volume(0.04)
 
+pick_up_sound = pygame.mixer.Sound(os.path.join(sounds_path, 'pick_up.wav'))
+pick_up_sound.set_volume(0.03)
+
 
 class Chest(AnimatedSprite):
     def __init__(self, x, y, group):
@@ -32,6 +35,7 @@ class Potion(AnimatedSprite):
 
     def pick_up(self, hero):
         if self.rect.colliderect(hero.rect):
+            pick_up_sound.play()
             hero.hp += self.hp_heal
             self.is_visible = False
 
