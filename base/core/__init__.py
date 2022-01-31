@@ -111,6 +111,10 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.game_running = False
+            if self.is_game_over:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
             if not self.pause:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LSHIFT:
@@ -118,10 +122,6 @@ class Game:
                     if event.key == pygame.K_ESCAPE and not self.is_game_over:
                         self.pause = True
                         choice(menu_sounds).play()
-            if self.is_game_over:
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        pygame.quit()
             else:
                 if not self.is_game_over:
                     if event.type == pygame.KEYDOWN:
