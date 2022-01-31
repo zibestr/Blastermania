@@ -7,6 +7,7 @@ from base.core.creatures.goblin import Goblin
 from base.core.creatures.monsters import MonsterFabric
 from base.core.creatures.slime import Slime
 from base.core.graphics.camera import Camera
+from base.core.graphics.game_over_menu import GameOverUI
 from base.core.graphics.pause_menu import MenuUI
 from base.core.graphics.hud import HUD
 from base.core.mapping.level_map import DungeonLevel, DungeonRoom, ObjectLevel
@@ -49,6 +50,7 @@ class Game:
         self.game_surface = GameSurface(self.window_sizes, 1, 1)
         self.menu_surface = MenuUI(self.window_sizes, self)
         self.hud_surface = HUD(self.window_sizes, self.game_surface.hero)
+        self.game_over_surface = GameOverUI(self.window_sizes)
         # камера
         self.camera = Camera(self.game_surface)
         # курсор
@@ -60,15 +62,25 @@ class Game:
         # музыка
         self.music_files = ['DarkChapel.mp3', 'BehindEnemyStripes.mp3',
                             'CarefreeSpirit.mp3', 'DunesOfTheLost.mp3',
-                            'HiddenUtopia.mp3', 'Spinetingler.mp3']
+                            'HiddenUtopia.mp3', 'Spinetingler.mp3',
+                            'CircusThief.mp3']
+        self.game_over_music = 'DullMeeting.mp3'
+        self.is_game_over = False
         self.is_music = True
 
     # метод для проигрывания музыки
     def play_background_music(self):
-        if not pygame.mixer.music.get_busy() and self.is_music:
+        hero_alive = self.game_surface.hero.is_alive
+        if not pygame.mixer.music.get_busy() and self.is_music and hero_alive:
             pygame.mixer.music.load(f'{os.getcwd()}\\base'
                                     f'\\music\\background\\{choices(self.music_files)[0]}')
             pygame.mixer.music.play(loops=1)
+            pygame.mixer.music.set_volume(0.08)
+        elif not hero_alive and not self.is_game_over:
+            self.is_game_over = True
+            pygame.mixer.music.load(f'{os.getcwd()}\\base'
+                                    f'\\music\\game_over\\{self.game_over_music}')
+            pygame.mixer.music.play(loops=-1)
             pygame.mixer.music.set_volume(0.08)
 
     # метод для отрисовки всей игры
@@ -90,6 +102,8 @@ class Game:
                                                      (self.window_sizes[0] * 0.05,
                                                       self.window_sizes[0] * 0.05)),
                               (pygame.mouse.get_pos()))
+        if self.is_game_over:
+            self.display.blit(self.game_over_surface.render(), (0, 0))
 
     # метод для обработки событий
     def event_handler(self):
@@ -101,26 +115,31 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_LSHIFT:
                         self.game_surface.hero.dodge()
-                    if event.key == pygame.K_ESCAPE:
+                    if event.key == pygame.K_ESCAPE and not self.is_game_over:
                         self.pause = True
                         choice(menu_sounds).play()
-            else:
+            if self.is_game_over:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        self.pause = False
-                        choice(menu_sounds).play()
-                # отслеживание нажатий в меню игры
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = pygame.mouse.get_pos()
-                    if self.menu_surface.buttons['continue'].collidepoint(pos):
-                        self.pause = False
-                        choice(menu_sounds).play()
-                    if self.menu_surface.buttons['exit'].collidepoint(pos):
-                        choice(menu_sounds).play()
                         pygame.quit()
-                    if self.menu_surface.buttons['music'].collidepoint(pos):
-                        self.is_music = not self.is_music
-                        choice(menu_sounds).play()
+            else:
+                if not self.is_game_over:
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            self.pause = False
+                            choice(menu_sounds).play()
+                    # отслеживание нажатий в меню игры
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        pos = pygame.mouse.get_pos()
+                        if self.menu_surface.buttons['continue'].collidepoint(pos):
+                            self.pause = False
+                            choice(menu_sounds).play()
+                        if self.menu_surface.buttons['exit'].collidepoint(pos):
+                            choice(menu_sounds).play()
+                            pygame.quit()
+                        if self.menu_surface.buttons['music'].collidepoint(pos):
+                            self.is_music = not self.is_music
+                            choice(menu_sounds).play()
         if not self.pause:
             keys = pygame.key.get_pressed()
             if abs(keys[pygame.K_d] - keys[pygame.K_a]) > 0 or abs(keys[pygame.K_s] - keys[pygame.K_w]) > 0:

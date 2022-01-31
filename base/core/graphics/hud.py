@@ -43,7 +43,8 @@ class HUD:
         dodge_surface = pygame.transform.scale(self.dodge_ui, sizes).convert_alpha()
         if self.hero.dodge_time != 0:
             dodge_surface.set_alpha(50)
-            font = pygame.font.Font(None, 40)
+            font = pygame.font.Font(f'{os.getcwd()}\\base\\core\\graphics\\fonts\\Pixeboy.ttf',
+                                    self.surface.get_width() // 25)
             timer = font.render(str(round((self.hero.dodge_cooldown - self.hero.dodge_time) / 120, 1)), True,
                                 (255, 255, 255))
             dodge_surface.blit(timer, (8, 8))

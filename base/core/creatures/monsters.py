@@ -32,23 +32,12 @@ class MonsterFabric:
 # класс с ИИ монстров
 class MonsterAI:
     def run(self, monster, hero):
-        if hero.rect.colliderect(monster.start_room.rect):
-            monster_speed = 0.01
-            hero_vector = Vector2(hero.rect.x, hero.rect.y)
-            monster_vector = Vector2(monster.rect.x, monster.rect.y)
-            movement = hero_vector - monster_vector
-            try:
-                movement.normalize()
-            except ValueError:
-                pass
-            movement *= monster_speed
-            monster.speed = movement
-        else:
-            if monster.rect.x != monster.start_x or monster.rect.y != monster.start_y:
+        if hero.is_alive:
+            if hero.rect.colliderect(monster.start_room.rect):
                 monster_speed = 0.01
-                start_vector = Vector2(monster.start_x, monster.start_y)
+                hero_vector = Vector2(hero.rect.x, hero.rect.y)
                 monster_vector = Vector2(monster.rect.x, monster.rect.y)
-                movement = start_vector - monster_vector
+                movement = hero_vector - monster_vector
                 try:
                     movement.normalize()
                 except ValueError:
@@ -56,5 +45,19 @@ class MonsterAI:
                 movement *= monster_speed
                 monster.speed = movement
             else:
-                monster.speed *= 0
+                if monster.rect.x != monster.start_x or monster.rect.y != monster.start_y:
+                    monster_speed = 0.01
+                    start_vector = Vector2(monster.start_x, monster.start_y)
+                    monster_vector = Vector2(monster.rect.x, monster.rect.y)
+                    movement = start_vector - monster_vector
+                    try:
+                        movement.normalize()
+                    except ValueError:
+                        pass
+                    movement *= monster_speed
+                    monster.speed = movement
+                else:
+                    monster.speed *= 0
+        else:
+            monster.speed *= 0
 

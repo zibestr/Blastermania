@@ -34,10 +34,11 @@ class Potion(AnimatedSprite):
         self.pickable_time = 10
 
     def pick_up(self, hero):
-        if self.rect.colliderect(hero.rect):
-            pick_up_sound.play()
-            hero.hp += self.hp_heal
-            self.is_visible = False
+        if hero.is_alive:
+            if self.rect.colliderect(hero.rect):
+                pick_up_sound.play()
+                hero.hp += self.hp_heal
+                self.is_visible = False
 
     def update(self):
         super().update()
