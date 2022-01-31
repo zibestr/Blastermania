@@ -4,31 +4,28 @@ import pygame
 # класс реализующий камеру
 class Camera:
     def __init__(self, surface):
-        self.sizes = surface.surface.get_size() * 1
+        self.sizes = surface.surface.get_size()
         # поверхность, на которой работает камера
         self.rendering_surface = surface
-        # коэффициент масштабирования изображения
-        self.scale = 5.5
         # точка в которую направлена камера
-        self.center = list(self.rendering_surface.center)
+        center = [self.rendering_surface.center[0],
+                  self.rendering_surface.center[1]]
+        x = center[0] - self.sizes[0] // 2
+        y = center[1] - self.sizes[1] // 2
+        self.rect = pygame.Rect(x, y, *self.sizes)
 
-    @property
-    def x(self):
-        return self.center[0] - self.sizes[0] // 2
-
-    @property
-    def y(self):
-        return self.center[1] - self.sizes[1] // 2
+    # метод для движения камеры
+    def move(self):
+        if not self.rendering_surface.hero.is_collision and self.rendering_surface.hero.is_alive:
+            delta = self.rendering_surface.hero.speed
+            self.rect.x += delta.x
+            self.rect.y += delta.y
 
     # рендарит поверхность для отрисовки с учётом масштаба
-    def render_scale_surface(self):
-        self.rendering_surface.surface.fill(pygame.Color('black'))
-        current_level = self.rendering_surface.current_level
-        for obj in self.rendering_surface.levels[current_level].objects:
-            obj.draw(self)
-        return self.rendering_surface.surface
+    def render_surface(self):
+        self.rendering_surface.surface.fill(pygame.Color(25, 28, 49))
+        # рисует сначала тайлы окружения, а потом существ
+        self.rendering_surface.tiles_sprites.draw(self)
+        self.rendering_surface.creatures_sprites.draw(self)
 
-    # изменить масштаб
-    def get_scale(self, scale):
-        if 5.0 <= scale <= 6.0:
-            self.scale = scale
+        return self.rendering_surface.surface
