@@ -82,6 +82,7 @@ class BulletItem(Item):
                 self.is_visible = False
 
 
-def Bullet(AnimatedSprite):
+class BulletProjectile(AnimatedSprite):
     # self.speed = pygame.Vector2(x_курсора - x_игрока, y_курсора - y_игрока).scale_to_length(скорость_пули)
-    pass
+    def __init__(self, hero_rect, shoot_coords):
+        super().__init__()
