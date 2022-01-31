@@ -17,10 +17,10 @@ def load_image(name):
 class HUD:
     def __init__(self, sizes, hero):
         self.surface = pygame.Surface((sizes[0], sizes[1])).convert_alpha()
-        self.surface.fill([0, 0, 0, 0])
         self.health_ui = load_image('health_ui.png')
         self.heath_bar = None
         self.dodge_ui = load_image('dodge_icon.png')
+        self.bullets_ui = load_image('spentshell.png')
         self.hero = hero
 
     # рендер полоски здоровья
@@ -42,7 +42,7 @@ class HUD:
         sizes = self.surface.get_width() * 0.05, self.surface.get_width() * 0.05
         dodge_surface = pygame.transform.scale(self.dodge_ui, sizes).convert_alpha()
         if self.hero.dodge_time != 0:
-            dodge_surface.set_alpha(50)
+            dodge_surface.set_alpha(80)
             font = pygame.font.Font(f'{os.getcwd()}\\base\\core\\graphics\\fonts\\Pixeboy.ttf',
                                     self.surface.get_width() // 25)
             timer = font.render(str(round((self.hero.dodge_cooldown - self.hero.dodge_time) / 120, 1)), True,
@@ -52,7 +52,21 @@ class HUD:
         self.surface.blit(dodge_surface,
                           (self.surface.get_width() * 0.05 + self.heath_bar.get_width(), 10))
 
+    def bullets_counter(self):
+        sizes = self.surface.get_width() * 0.04, self.surface.get_width() * 0.04
+        bullet_image = pygame.transform.scale(self.bullets_ui, sizes)
+        font = pygame.font.Font(f'{os.getcwd()}\\base\\core\\graphics\\fonts\\Pixeboy.ttf',
+                                self.surface.get_width() // 30)
+        count = font.render(f'{self.hero.amount_bullets} / {self.hero.max_bullets}', True,
+                            (255, 255, 255))
+        self.surface.blit(count,
+                          (30, 6 * self.health_ui.get_height()))
+        self.surface.blit(bullet_image,
+                          (40 + count.get_width(), 5 * self.health_ui.get_height()))
+
     def render(self):
+        self.surface.fill([0, 0, 0, 0])
         self.health_bar()
         self.dodge_icon()
+        self.bullets_counter()
         return self.surface
