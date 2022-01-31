@@ -2,6 +2,8 @@ from base.core.creatures import RunningSprite
 import pygame
 import os
 
+from base.core.creatures.entities import BulletItem, Potion
+
 pygame.mixer.init()
 
 hero_idle = ['hero\\knight_idle_spritesheet.png', 6, 1]
@@ -35,6 +37,10 @@ class Hero(RunningSprite):
         self.cooldown_damaged = 120 * 1.5
         self.time_damaged = 0
         self.is_alive = True
+
+        # переменные дл патронов
+        self.amount_bullets = 100
+        self.max_bullets = 150
 
         # переменные, связанные с уклонением
         self.dodge_tick = 0
@@ -102,7 +108,17 @@ class Hero(RunningSprite):
         try:
             if collision_object.is_visible and \
                     collision_object.pickable_timer == collision_object.pickable_time \
-                    and self.hp != self.max_hp:
+                    and self.hp != self.max_hp and \
+                    isinstance(collision_object, Potion):
+                collision_object.pick_up(self)
+        except AttributeError:
+            pass
+        # коллизия с пулями
+        try:
+            if collision_object.is_visible and \
+                    collision_object.pickable_timer == collision_object.pickable_time \
+                    and self.max_bullets != self.amount_bullets and \
+                    isinstance(collision_object, BulletItem):
                 collision_object.pick_up(self)
         except AttributeError:
             pass

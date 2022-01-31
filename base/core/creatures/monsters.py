@@ -1,7 +1,7 @@
 from random import choice
 from pygame import Vector2
 from base.core.mapping.level_map import DungeonRoom
-from base.core.creatures.entities import Chest
+from base.core.creatures.entities import PotionChest, BulletChest
 
 
 # класс, отвечающий за производство экземпляров классов монстров
@@ -20,11 +20,21 @@ class MonsterFabric:
 
     # создаёт 4 сундука
     def create_chests(self, spawn_room):
+        rooms = list(filter(lambda elem: isinstance(elem, DungeonRoom), self.rooms))
         for _ in range(4):
-            room = choice(list(filter(lambda elem: isinstance(elem, DungeonRoom), self.rooms)))
+            room = choice(rooms)
             while room is spawn_room:
-                room = choice(list(filter(lambda elem: isinstance(elem, DungeonRoom), self.rooms)))
-            chest = Chest(*room.rect.center, self.sprites_group)
+                room = choice(rooms)
+            chest = PotionChest(*room.rect.center, self.sprites_group)
+            rooms.remove(room)
+            self.container.append(chest)
+            self.sprites_group.add(chest)
+        for _ in range(4):
+            room = choice(rooms)
+            while room is spawn_room:
+                room = choice(rooms)
+            chest = BulletChest(*room.rect.center, self.sprites_group)
+            rooms.remove(room)
             self.container.append(chest)
             self.sprites_group.add(chest)
 
