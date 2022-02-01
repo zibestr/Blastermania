@@ -102,12 +102,13 @@ class MovingSprite(Sprite, MovingObject):
 
 # реализация анимированного спрайта
 class AnimatedSprite(MovingSprite):
-    def __init__(self, image_name, columns, rows, x, y, speed, *group):
+    def __init__(self, image_name, columns, rows, x, y, speed, *group, scale=3.25):
         super().__init__(image_name, None, x, y, speed, *group)
         # словарь в котором хранятся данные для анимации спрайтов
         # сигнатура элементов словаря: 'путь в спрайту', количество столбцов, количество строк
         self.spritesheets = dict()
         self.cur_spritesheet = None
+        self.scale = scale
         # фреймы анимации
         self.frames = list()
         self.cut_sheet(load_image(image_name), columns, rows)
@@ -134,15 +135,14 @@ class AnimatedSprite(MovingSprite):
     # метод для разделения изображения на фреймы анимации
     # mirror отвечает за зеркальное отражение
     def cut_sheet(self, sheet, columns, rows, mirror=False):
-        scale = 3.25
         width = sheet.get_width() // columns
         height = sheet.get_height() // rows
-        self.rect = pygame.Rect(0, 0, width * scale, height * scale)
+        self.rect = pygame.Rect(0, 0, width * self.scale, height * self.scale)
         for j in range(rows):
             for i in range(columns):
-                frame_location = (self.rect.w // scale * i, self.rect.h // scale * j)
+                frame_location = (self.rect.w // self.scale * i, self.rect.h // self.scale * j)
                 self.frames.append(pygame.transform.flip(pygame.transform.scale(sheet.subsurface(pygame.Rect(
-                    frame_location, (width, height))), (width * scale, height * scale)), mirror, False))
+                    frame_location, (width, height))), (width * self.scale, height * self.scale)), mirror, False))
 
     def update(self):
         if self.counter == self.limit:

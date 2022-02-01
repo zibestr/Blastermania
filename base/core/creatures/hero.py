@@ -1,8 +1,10 @@
+from random import choice
+
 from base.core.creatures import RunningSprite
 import pygame
 import os
 
-from base.core.creatures.entities import BulletItem, Potion
+from base.core.creatures.entities import BulletItem, Potion, BulletProjectile
 
 pygame.mixer.init()
 
@@ -28,7 +30,7 @@ open_chest_sound.set_volume(volume)
 
 # класс реализующий героя
 class Hero(RunningSprite):
-    def __init__(self, x, y, speed, rooms, group):
+    def __init__(self, x, y, speed, rooms, game, group):
         super().__init__(hero_idle, hero_run, x, y, speed, rooms, group)
         self.hp = 4
         self.max_hp = 4
@@ -49,8 +51,13 @@ class Hero(RunningSprite):
         self.dodge_time = 0
         self.dead_inside = False
 
-    def shoot(self):
-        pass
+        self.game = game
+
+    def shoot(self, mouse_pos):
+        if self.amount_bullets > 0:
+            choice(shoot_sounds).play()
+            BulletProjectile(self, self.game.game_surface.surface.get_rect().center, mouse_pos)
+            self.amount_bullets -= 1
 
     def dodge(self):
         if self.dodge_time == 0 and not self.is_collision:
@@ -101,7 +108,9 @@ class Hero(RunningSprite):
         super().collision(collision_object)
         # коллизия с врагами
         try:
-            self.get_damage(collision_object.attack)
+            if collision_object is not self and not isinstance(collision_object, BulletProjectile) \
+                    and collision_object.is_visible:
+                self.get_damage(collision_object.attack)
         except AttributeError:
             pass
         # коллизия с зельями

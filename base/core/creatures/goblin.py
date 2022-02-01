@@ -1,14 +1,23 @@
+import os
+import pygame
 from base.core.mapping.level_map import DungeonRoom
 from base.core.creatures import RunningSprite
 
 goblin_idle = ['goblin\\goblin_idle_spritesheet.png', 6, 1]
 goblin_run = ['goblin\\goblin_run_spritesheet.png', 6, 1]
 
+pygame.mixer.init()
+
+sounds_path = f'{os.getcwd()}\\base\\music\\sounds'
+hit_sound = pygame.mixer.Sound(os.path.join(sounds_path, 'hit.wav'))
+hit_sound.set_volume(0.02)
+
 
 # ВСЕХ МОНСТРОВ СОЗДАВАТЬ ПО ЭТОМУ ШАБЛОНУ
 class Goblin(RunningSprite):
     def __init__(self, x, y, speed, rooms, ai, *group):
         super().__init__(goblin_idle, goblin_run, x, y, speed, rooms, *group)
+        self.is_visible = True
         self.hp = 2
         self.attack = 1
         self.ai = ai
@@ -19,8 +28,9 @@ class Goblin(RunningSprite):
 
     # для интеллекта
     def update(self):
-        self.ai.run(self, self.hero)
-        super().update()
+        if self.is_visible:
+            self.ai.run(self, self.hero)
+            super().update()
 
     def move(self):
         super().move()
@@ -29,3 +39,11 @@ class Goblin(RunningSprite):
         else:
             self.is_running = False
 
+    def get_damage(self, damage):
+        if self.is_visible:
+            self.hp -= damage
+            hit_sound.play()
+            self.hit_animation()
+            if self.hp == 0:
+                self.is_visible = False
+                self.death_animation()
