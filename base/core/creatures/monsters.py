@@ -44,26 +44,23 @@ class MonsterAI:
     def run(self, monster, hero):
         if hero.is_alive:
             if hero.rect.colliderect(monster.start_room.rect):
-                monster_speed = 0.01
-                hero_vector = Vector2(hero.rect.x, hero.rect.y)
-                monster_vector = Vector2(monster.rect.x, monster.rect.y)
+                monster_speed = 1.2
+                hero_vector = Vector2(*hero.rect.center)
+                monster_vector = Vector2(*monster.rect.center)
                 movement = hero_vector - monster_vector
-                try:
-                    movement.normalize()
-                except ValueError:
-                    pass
+                if movement.length() != 0:
+                    movement = movement.normalize()
+
                 movement *= monster_speed
                 monster.speed = movement
             else:
                 if monster.rect.x != monster.start_x or monster.rect.y != monster.start_y:
-                    monster_speed = 0.01
+                    monster_speed = 1.2
                     start_vector = Vector2(monster.start_x, monster.start_y)
                     monster_vector = Vector2(monster.rect.x, monster.rect.y)
                     movement = start_vector - monster_vector
-                    try:
-                        movement.normalize()
-                    except ValueError:
-                        pass
+                    if movement.length() != 0:
+                        movement = movement.normalize()
                     movement *= monster_speed
                     monster.speed = movement
                 else:

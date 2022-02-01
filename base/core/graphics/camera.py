@@ -8,8 +8,7 @@ class Camera:
         # поверхность, на которой работает камера
         self.rendering_surface = surface
         # точка в которую направлена камера
-        center = [self.rendering_surface.center[0],
-                  self.rendering_surface.center[1]]
+        center = self.rendering_surface.center
         x = center[0] - self.sizes[0] // 2
         y = center[1] - self.sizes[1] // 2
         self.rect = pygame.Rect(x, y, *self.sizes)
