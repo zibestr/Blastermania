@@ -93,8 +93,8 @@ class BulletProjectile(AnimatedSprite):
         dx = shoot_coords[0] - start_coords[0]
         dy = shoot_coords[1] - start_coords[1]
         angle = math.atan2(dy, dx)
-        self.speed = pygame.Vector2(3 * math.cos(angle),
-                                    3 * math.sin(angle))
+        self.speed = pygame.Vector2(5 * math.cos(angle),
+                                    5 * math.sin(angle)) + hero.speed
         self.is_visible = True
         self.attack = 1
         self.rooms = hero.rooms
@@ -128,7 +128,7 @@ class BulletProjectile(AnimatedSprite):
                                               isinstance(sprite, FlyingCreature),
                                sprites))
         index = self.rect.collidelist(list(map(lambda x: x.rect, monsters)))
-        if index != -1:
+        if index != -1 and monsters[index].is_visible:
             monsters[index].get_damage(self.attack)
             self.is_visible = False
 

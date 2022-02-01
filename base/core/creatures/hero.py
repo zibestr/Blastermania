@@ -1,6 +1,6 @@
 from random import choice
 
-from base.core.creatures import RunningSprite
+from base.core.creatures import RunningSprite, Sprite
 import pygame
 import os
 
@@ -34,7 +34,6 @@ class Hero(RunningSprite):
         super().__init__(hero_idle, hero_run, x, y, speed, rooms, group)
         self.hp = 4
         self.max_hp = 4
-        self.attack = 1
         # даёт бессмертие на полторы секунды, если игроку нанесли урон
         self.cooldown_damaged = 120 * 1.5
         self.time_damaged = 0
@@ -54,10 +53,11 @@ class Hero(RunningSprite):
         self.game = game
 
     def shoot(self, mouse_pos):
-        if self.amount_bullets > 0:
+        if self.is_alive:
+            bullet = BulletProjectile(self,
+                                      self.game.game_surface.surface.get_rect().center,
+                                      mouse_pos)
             choice(shoot_sounds).play()
-            BulletProjectile(self, self.game.game_surface.surface.get_rect().center, mouse_pos)
-            self.amount_bullets -= 1
 
     def dodge(self):
         if self.dodge_time == 0 and not self.is_collision:
