@@ -1,5 +1,6 @@
 import os
 import pygame
+import time
 
 
 # метод загрузки изображения
@@ -22,6 +23,8 @@ class HUD:
         self.dodge_ui = load_image('dodge_icon.png')
         self.bullets_ui = load_image('spentshell.png')
         self.hero = hero
+        self.timer = time.time()
+        self.time_count = time.strftime("%M:%S", time.gmtime(time.time() - self.timer))
 
     # рендер полоски здоровья
     def health_bar(self):
@@ -36,6 +39,17 @@ class HUD:
         self.heath_bar = pygame.transform.scale(self.health_ui, (scale * sizes[0],
                                                                  scale * sizes[1]))
         self.surface.blit(self.heath_bar, (10, 10))
+
+    # рендер счетчика времени
+    def time_counter(self, is_win, is_game_over):
+        font = pygame.font.Font(f'{os.getcwd()}\\base\\core\\graphics\\fonts\\Pixeboy.ttf',
+                                self.surface.get_width() // 30)
+        if not is_win:
+            self.time_count = time.strftime("%M:%S", time.gmtime(time.time() - self.timer))
+        count = font.render(f'{self.time_count}', True,
+                            (255, 255, 255))
+        self.surface.blit(count,
+                          (30, 9 * self.health_ui.get_height()))
 
     # рендер иконки отката уклонения
     def dodge_icon(self):
@@ -64,9 +78,10 @@ class HUD:
         self.surface.blit(bullet_image,
                           (40 + count.get_width(), 5 * self.health_ui.get_height()))
 
-    def render(self):
+    def render(self, is_win, is_game_over):
         self.surface.fill([0, 0, 0, 0])
         self.health_bar()
         self.dodge_icon()
         self.bullets_counter()
+        self.time_counter(is_win, is_game_over)
         return self.surface

@@ -1,6 +1,10 @@
+import math
 import os
 import pygame
 from base.core.creatures import AnimatedSprite
+from base.core.creatures.fly_creature import FlyingCreature
+from base.core.creatures.slime import Slime
+from base.core.creatures.goblin import Goblin
 
 pygame.mixer.init()
 
@@ -82,6 +86,54 @@ class BulletItem(Item):
                 self.is_visible = False
 
 
-def Bullet(AnimatedSprite):
-    # self.speed = pygame.Vector2(x_курсора - x_игрока, y_курсора - y_игрока).scale_to_length(скорость_пули)
-    pass
+class BulletProjectile(AnimatedSprite):
+    def __init__(self, hero, start_coords, shoot_coords):
+        super().__init__('laser\\laser.png', 4, 1, hero.rect.x, hero.rect.y,
+                         [0, 0], hero.groups()[0], scale=2)
+        dx = shoot_coords[0] - start_coords[0]
+        dy = shoot_coords[1] - start_coords[1]
+        angle = math.atan2(dy, dx)
+        self.speed = pygame.Vector2(5 * math.cos(angle),
+                                    5 * math.sin(angle)) + hero.speed
+        self.is_visible = True
+        self.attack = 1
+        self.rooms = hero.rooms
+
+    # функция коллизии со стенами
+    def collide(self, objects):
+        indexes = self.rect.collidelistall(list(map(lambda x: x.rect, objects)))
+        if len(indexes) == 1:
+            rect_room = objects[indexes[0]].rect
+            if rect_room.x > self.rect.x or \
+                    rect_room.y > self.rect.y or \
+                    rect_room.bottom < self.rect.bottom or \
+                    rect_room.right < self.rect.right:
+                self.is_visible = False
+        elif len(indexes) == 2:
+            rect_room1 = objects[indexes[0]].rect
+            rect_room2 = objects[indexes[1]].rect
+            if rect_room1.y == rect_room2.bottom or rect_room1.bottom == rect_room2.y:
+                if max(rect_room1.x, rect_room2.x) > self.rect.x or \
+                        min(rect_room1.right, rect_room2.right) < self.rect.right:
+                    self.is_visible = False
+            elif rect_room1.x == rect_room2.right or rect_room1.right == rect_room2.x:
+                if max(rect_room1.y, rect_room2.y) > self.rect.y or \
+                        min(rect_room1.bottom, rect_room2.bottom) < self.rect.bottom:
+                    self.is_visible = False
+
+    def damage(self):
+        sprites = self.groups()[0].sprites()
+        monsters = list(filter(lambda sprite: isinstance(sprite, Goblin) or
+                                              isinstance(sprite, Slime) or
+                                              isinstance(sprite, FlyingCreature),
+                               sprites))
+        index = self.rect.collidelist(list(map(lambda x: x.rect, monsters)))
+        if index != -1 and monsters[index].is_visible:
+            monsters[index].get_damage(self.attack)
+            self.is_visible = False
+
+    def move(self):
+        if self.is_visible:
+            super().move()
+            self.collide(self.rooms)
+            self.damage()
